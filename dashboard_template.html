@@ -89,7 +89,7 @@ th.sort:hover{color:var(--ink)}
     <div>
       <h1>EQ STAYING Dashboard — AV / DMG / LONG STAYING</h1>
     </div>
-    <div class="frow"><a class="btn" href="index.html" style="text-decoration:none">← EQUIPMENT</a><button class="btn" id="themeBtn" title="สลับธีม">◐ Theme</button></div>
+    <div class="frow"><a class="btn" href="https://sirichai1265.github.io/equipment/" style="text-decoration:none">← EQUIPMENT</a><button class="btn" id="themeBtn" title="สลับธีม">◐ Theme</button></div>
   </header>
 
   <div class="card filters">
@@ -379,7 +379,7 @@ csvBtn.onclick=()=>{
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`EQ_STAYING_filtered_${META.lastEq}.csv`; a.click(); URL.revokeObjectURL(a.href);
 };
 
-// ตัวกรองล่วงหน้าจากลิงก์หน้า EQUIPMENT เช่น dashboard.html?area=BKK&group=AV&bucket=LONG&size=REEFER
+// ตัวกรองล่วงหน้าจากลิงก์ เช่น index.html?area=BKK&group=AV&bucket=LONG&size=REEFER
 (()=>{ const p=new URLSearchParams(location.search);
   if(["BKK","LCH"].includes(p.get("area"))) S.area=p.get("area");
   if(GROUPS.includes(p.get("group"))) S.group=p.get("group");

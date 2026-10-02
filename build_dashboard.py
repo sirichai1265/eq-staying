@@ -5,7 +5,7 @@
 วิธีใช้:
     python build_dashboard.py                      # ใช้ไฟล์ *STAYING*.xls ล่าสุดในโฟลเดอร์นี้
     python build_dashboard.py "10-2-STAYING - Copy.xls"
-ผลลัพธ์: index.html (หน้ารวม EQUIPMENT) + dashboard.html (เปิดด้วย browser ได้เลย ไม่ต้องต่อเน็ต)
+ผลลัพธ์: index.html (เปิดด้วย browser ได้เลย ไม่ต้องต่อเน็ต)
 """
 import base64
 import glob
@@ -17,7 +17,7 @@ from datetime import datetime
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "dashboard.html")
+OUT = os.path.join(HERE, "index.html")
 
 AV_CODES = {"IEC", "IED", "IEP", "IER", "IEW", "VED"}
 DMG_CODES = {"OER"}
@@ -74,44 +74,6 @@ def logo_data_uri():
         return "data:image/png;base64," + base64.b64encode(f.read()).decode()
 
 
-def build_equipment(rows, meta):
-    """หน้ารวม EQUIPMENT (index.html = หน้าแรก) — การ์ดสรุปตัวเลขที่ลิงก์ไป dashboard.html"""
-    def n(f):
-        return sum(1 for x in rows if f(x))
-
-    def avg_days(area):
-        d = [x["d"] for x in rows if x["ar"] == area]
-        return round(sum(d) / len(d)) if d else 0
-
-    rf = [x for x in rows if x["st"] in REEFER_TYPES]
-    summary = {
-        "total": len(rows),
-        "av": n(lambda x: x["gp"] == "AV"),
-        "dmg": n(lambda x: x["gp"] == "DMG"),
-        "long": n(lambda x: x["d"] >= 100),
-        "longBkk": n(lambda x: x["d"] >= 100 and x["ar"] == "BKK"),
-        "longLch": n(lambda x: x["d"] >= 100 and x["ar"] == "LCH"),
-        "d200": n(lambda x: x["d"] >= 200),
-        "maxDays": max((x["d"] for x in rows), default=0),
-        "rf": len(rf),
-        "rfAv": sum(1 for x in rf if x["gp"] == "AV"),
-        "rfDmg": sum(1 for x in rf if x["gp"] == "DMG"),
-        "rfLong": sum(1 for x in rf if x["d"] >= 100),
-        "avBkk": n(lambda x: x["gp"] == "AV" and x["ar"] == "BKK"),
-        "avLch": n(lambda x: x["gp"] == "AV" and x["ar"] == "LCH"),
-        "avgBkk": avg_days("BKK"),
-        "avgLch": avg_days("LCH"),
-        "lastEq": meta["lastEq"],
-        "generated": meta["generated"],
-    }
-    with open(os.path.join(HERE, "equipment_template.html"), encoding="utf-8") as f:
-        html = f.read()
-    html = html.replace("/*__SUMMARY__*/null", json.dumps(summary))
-    html = html.replace("__LOGO__", logo_data_uri())
-    with open(os.path.join(HERE, "index.html"), "w", encoding="utf-8") as f:
-        f.write(html)
-
-
 def main():
     src = pick_source()
     df = pd.read_excel(src)
@@ -156,13 +118,11 @@ def main():
     with open(OUT, "w", encoding="utf-8") as f:
         f.write(html)
 
-    build_equipment(rows, meta)
-
     print(f"Source : {meta['source']}  ({len(rows)} containers)")
     for g in ("AV", "DMG", "OTHER"):
         print(f"  {g:5}: {sum(1 for x in rows if x['gp'] == g)}")
     print(f"  >=100 days: {sum(1 for x in rows if x['d'] >= 100)}   >=200 days: {sum(1 for x in rows if x['d'] >= 200)}")
-    print(f"Output : index.html (EQUIPMENT), {os.path.basename(OUT)}")
+    print(f"Output : {OUT}")
 
 
 if __name__ == "__main__":
