@@ -1,0 +1,7 @@
+# ไฟล์ข้อมูลต้นฉบับ (ข้อมูลถูกฝังใน index.html แล้ว)
+*.xls
+*.xlsx
+~$*
+.claude/
+__pycache__/
+logo ha2.png
