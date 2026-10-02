@@ -2,7 +2,7 @@
 
 Dashboard ติดตามตู้ AV / DMG และ LONG STAYING (BKK / LCH)
 
-- **AV** = Move Code IEC, IED, IEP, IER, VED · **DMG** = OER · **OTHER** = Move Code อื่น
+- **AV** = Move Code IEC, IED, IEP, IER, IEW, VED · **DMG** = OER · **OTHER** = Move Code อื่น
 - **Days**: 0–30 เขียว · 31–99 ส้ม · 100–199 แดง · 200+ แดงไฮไลท์เหลือง
 - **Area**: แบ่งจาก Location โดย LCH54 / LCH55 นับเป็น BKK
 - ตัวกรอง Size/Type, Built Year, Location, Move Code, Lessor และ RF Brand (22RE / 45RE)

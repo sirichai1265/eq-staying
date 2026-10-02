@@ -19,7 +19,7 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "index.html")
 
-AV_CODES = {"IEC", "IED", "IEP", "IER", "VED"}
+AV_CODES = {"IEC", "IED", "IEP", "IER", "IEW", "VED"}
 DMG_CODES = {"OER"}
 BKK_OVERRIDE_LOCATIONS = {"LCH55", "LCH54"}
 REEFER_TYPES = {"22RE", "45RE"}
