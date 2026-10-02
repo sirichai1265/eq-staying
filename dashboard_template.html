@@ -132,7 +132,7 @@ th.sort:hover{color:var(--ink)}
     <div class="tablebar">
       <h2 style="margin:0">รายการตู้ (เรียงตาม Days มาก → น้อย)</h2>
       <div class="frow">
-        <input type="search" id="q" placeholder="ค้นหา Container No / Auth No">
+        <input type="search" id="q" placeholder="ค้นหา Container No">
         <button class="btn" id="csvBtn">⬇ Export CSV</button>
       </div>
     </div>
@@ -214,7 +214,7 @@ function pass(r, exclude){
   if(S.loc!=="ALL" && r.loc!==S.loc) return false;
   if(S.mc!=="ALL" && r.mc!==S.mc) return false;
   if(S.rf!=="ALL" && (S.rf==="(ไม่ระบุ)" ? r.rf!=="" || !REEFER.includes(r.st) : r.rf!==S.rf)) return false;
-  if(S.q && !(r.cn.toUpperCase().includes(S.q) || r.au.toUpperCase().includes(S.q))) return false;
+  if(S.q && !r.cn.toUpperCase().includes(S.q)) return false;
   return true;
 }
 
@@ -302,7 +302,7 @@ function render(){
   renderMain(rows);
 }
 
-const COLS=[["ar","Area"],["loc","Location"],["d","Days","num"],["cn","Container No"],["st","Size/Type"],["gp","Group"],["mc","Move Code"],["eq","EQ Date"],["lt","Lease Type"],["au","Auth No"],["rdl","RDL CHK"],["by","Built Year","num"],["rf","RF Brand","rfcol"]];
+const COLS=[["ar","Area"],["loc","Location"],["d","Days","num"],["cn","Container No"],["st","Size/Type"],["gp","Group"],["mc","Move Code"],["eq","EQ Date"],["by","Built Year","num"],["rf","RF Brand","rfcol"]];
 let lastRows=[];
 function renderMain(rows){
   const k=S.sortKey, dir=S.sortDir;
@@ -310,7 +310,7 @@ function renderMain(rows){
   const pages=Math.max(1,Math.ceil(lastRows.length/PAGE)); if(S.page>=pages) S.page=0;
   const pr=lastRows.slice(S.page*PAGE,(S.page+1)*PAGE);
   tMain.innerHTML = `<tr><th>#</th>${COLS.map(([c,l,cls])=>`<th class="sort ${cls||""}" data-k="${c}">${l}${c===k?(dir<0?" ▼":" ▲"):""}</th>`).join("")}</tr>` +
-    pr.map((r,i)=>`<tr class="${r.d>=200?"rowy":""}"><td class="muted">${S.page*PAGE+i+1}</td><td>${r.ar}</td><td>${r.loc}</td><td class="num">${dayCell(r.d)}</td><td class="mono"><b>${esc(r.cn)}</b></td><td>${r.st}</td><td><span class="gp ${r.gp}">${r.gp}</span></td><td>${r.mc}</td><td>${r.eq}</td><td>${esc(r.lt)}</td><td>${esc(r.au)}</td><td>${esc(r.rdl)}</td><td class="num">${r.by??""}</td><td class="rfcol">${esc(r.rf)}</td></tr>`).join("");
+    pr.map((r,i)=>`<tr class="${r.d>=200?"rowy":""}"><td class="muted">${S.page*PAGE+i+1}</td><td>${r.ar}</td><td>${r.loc}</td><td class="num">${dayCell(r.d)}</td><td class="mono"><b>${esc(r.cn)}</b></td><td>${r.st}</td><td><span class="gp ${r.gp}">${r.gp}</span></td><td>${r.mc}</td><td>${r.eq}</td><td class="num">${r.by??""}</td><td class="rfcol">${esc(r.rf)}</td></tr>`).join("");
   pager.innerHTML = `<span class="muted">แสดง ${fmt(lastRows.length?S.page*PAGE+1:0)}–${fmt(Math.min((S.page+1)*PAGE,lastRows.length))} จาก ${fmt(lastRows.length)} ตู้</span>
     <button class="btn" data-p="prev" ${S.page===0?"disabled":""}>‹ ก่อนหน้า</button><span>${S.page+1} / ${pages}</span><button class="btn" data-p="next" ${S.page>=pages-1?"disabled":""}>ถัดไป ›</button>`;
 }
@@ -354,8 +354,8 @@ xlsxBtn.onclick=async()=>{
 };
 
 csvBtn.onclick=()=>{
-  const head=["Area","Location","Days","Aging","Container No","Size/Type","Group","Move Code","EQ Date","Lease Type","Auth No","RDL CHK","Built Year","RF Brand"];
-  const lines=[head.join(",")].concat(lastRows.map(r=>[r.ar,r.loc,r.d,bucketOf(r.d).l,r.cn,r.st,r.gp,r.mc,r.eq,r.lt,r.au,r.rdl,r.by??"",r.rf].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")));
+  const head=["Area","Location","Days","Aging","Container No","Size/Type","Group","Move Code","EQ Date","Built Year","RF Brand"];
+  const lines=[head.join(",")].concat(lastRows.map(r=>[r.ar,r.loc,r.d,bucketOf(r.d).l,r.cn,r.st,r.gp,r.mc,r.eq,r.by??"",r.rf].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")));
   const blob=new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`EQ_STAYING_filtered_${META.lastEq}.csv`; a.click(); URL.revokeObjectURL(a.href);
 };
