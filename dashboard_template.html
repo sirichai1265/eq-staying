@@ -123,9 +123,13 @@ th.sort:hover{color:var(--ink)}
   <div class="card alert" style="margin-bottom:12px">
     <div class="tablebar">
       <h2 style="margin:0">⚠ แจ้งเตือน LONG STAYING (≥ 100 วัน) — <span id="alertCount"></span></h2>
-      <button class="btn" id="xlsxBtn">⬇ Export Excel</button>
+      <div class="frow">
+        <input type="search" id="alertQ" placeholder="ค้นหาเบอร์ตู้ LONG STAYING">
+        <button class="btn" id="alertToggle">▸ แสดงรายการ</button>
+        <button class="btn" id="xlsxBtn">⬇ Export Excel</button>
+      </div>
     </div>
-    <div class="scroll" style="max-height:340px" id="tAlert"></div>
+    <div class="scroll" style="max-height:340px;margin-top:8px;display:none" id="tAlert"></div>
   </div>
 
   <div class="card">
@@ -293,13 +297,28 @@ function render(){
 
   // Alert list (>=100)
   const al = rows.filter(r=>r.d>=100).sort((a,b)=>b.d-a.d);
-  alertRows = al;
+  alertAll = al;
   alertCount.innerHTML = `${fmt(al.length)} ตู้ (≥200 วัน: <span class="dy">${fmt(al.filter(r=>r.d>=200).length)}</span>)`;
-  tAlert.innerHTML = al.length ? `<table><tr><th>#</th><th>Area</th><th>Location</th><th class="num">Days</th><th>Container No</th><th>Size/Type</th><th>Group</th><th>Move Code</th><th>EQ Date</th><th>Built Year</th><th class="rfcol">RF Brand</th></tr>` +
-    al.map((r,i)=>`<tr class="${r.d>=200?"rowy":"rowr"}"><td class="muted">${i+1}</td><td>${r.ar}</td><td>${r.loc}</td><td class="num">${dayCell(r.d)}</td><td class="mono"><b>${esc(r.cn)}</b></td><td>${r.st}</td><td><span class="gp ${r.gp}">${r.gp}</span></td><td>${r.mc}</td><td>${r.eq}</td><td>${r.by??""}</td><td class="rfcol">${esc(r.rf)}</td></tr>`).join("") + `</table>`
-    : `<div class="muted">ไม่มีตู้ที่อยู่เกิน 100 วันในตัวกรองปัจจุบัน 🎉</div>`;
+  renderAlert();
 
   renderMain(rows);
+}
+
+// ===== รายการแจ้งเตือน: ซ่อนไว้ กดแสดง / ค้นหาเบอร์ตู้ =====
+let alertAll=[], alertRows=[], alertOpen=false;
+function setAlertOpen(open){
+  alertOpen=open; tAlert.style.display=open?"":"none";
+  alertToggle.textContent=open?"▾ ซ่อนรายการ":"▸ แสดงรายการ";
+}
+alertToggle.onclick=()=>setAlertOpen(!alertOpen);
+alertQ.oninput=()=>{ if(alertQ.value.trim()) setAlertOpen(true); renderAlert(); };
+function renderAlert(){
+  const v=alertQ.value.trim().toUpperCase();
+  const al = v ? alertAll.filter(r=>r.cn.toUpperCase().includes(v)) : alertAll;
+  alertRows = al;
+  tAlert.innerHTML = al.length ? (v?`<div class="muted" style="font-size:12px;margin-bottom:4px">พบ ${fmt(al.length)} ตู้ จากคำค้น "${esc(v)}"</div>`:"") + `<table><tr><th>#</th><th>Area</th><th>Location</th><th class="num">Days</th><th>Container No</th><th>Size/Type</th><th>Group</th><th>Move Code</th><th>EQ Date</th><th>Built Year</th><th class="rfcol">RF Brand</th></tr>` +
+    al.map((r,i)=>`<tr class="${r.d>=200?"rowy":"rowr"}"><td class="muted">${i+1}</td><td>${r.ar}</td><td>${r.loc}</td><td class="num">${dayCell(r.d)}</td><td class="mono"><b>${esc(r.cn)}</b></td><td>${r.st}</td><td><span class="gp ${r.gp}">${r.gp}</span></td><td>${r.mc}</td><td>${r.eq}</td><td>${r.by??""}</td><td class="rfcol">${esc(r.rf)}</td></tr>`).join("") + `</table>`
+    : `<div class="muted">${v?`ไม่พบเบอร์ตู้ "${esc(v)}" ในรายการ LONG STAYING`:"ไม่มีตู้ที่อยู่เกิน 100 วันในตัวกรองปัจจุบัน 🎉"}</div>`;
 }
 
 const COLS=[["ar","Area"],["loc","Location"],["d","Days","num"],["cn","Container No"],["st","Size/Type"],["gp","Group"],["mc","Move Code"],["eq","EQ Date"],["by","Built Year","num"],["rf","RF Brand","rfcol"]];
@@ -318,7 +337,7 @@ tMain.onclick=e=>{const th=e.target.closest("th[data-k]"); if(!th) return; const
 pager.onclick=e=>{const b=e.target.closest("button[data-p]"); if(!b) return; S.page+=b.dataset.p==="next"?1:-1; renderMain(DATA.filter(r=>pass(r))); mainWrap.scrollIntoView({block:"start"});};
 
 // ===== Export Excel รายการแจ้งเตือน LONG STAYING (ตามตัวกรองปัจจุบัน) =====
-let alertRows=[];
+
 function loadExcelJS(){
   if(window.ExcelJS) return Promise.resolve();
   return new Promise((ok,fail)=>{const s=document.createElement("script");
