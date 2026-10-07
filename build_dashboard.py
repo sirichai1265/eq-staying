@@ -12,6 +12,7 @@ import base64
 import glob
 import json
 import os
+import re
 import shutil
 import sys
 from datetime import datetime
@@ -129,49 +130,106 @@ def main():
     archive(src, rows, meta)
 
 
-def write_long_staying_xlsx(rows, path):
-    """รายการแจ้งเตือน LONG STAYING (>= 100 วัน) แบ่งสีเหมือนใน dashboard"""
+# กลุ่มวันตามสี (เหมือนใน dashboard): ชื่อชีท, ช่วงวัน, สีพื้น, สีตัวเลข Days
+DAY_BUCKETS = [
+    ("0-30 วัน", 0, 30, "DCFCE7", "15803D"),
+    ("31-99 วัน", 31, 99, "FFEDD5", "C2410C"),
+    ("100-199 วัน", 100, 199, "FEE2E2", "B91C1C"),
+    ("200+ วัน", 200, 10**9, "FFF59D", "B91C1C"),
+]
+
+
+def write_summary_xlsx(rows, meta, path):
+    """Excel สรุป: ชีท 'สรุป' + แยกชีทละกลุ่มวัน (0-30 / 31-99 / 100-199 / 200+)"""
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
-    ws_rows = [r for r in rows if r["d"] >= 100]
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "LONG STAYING"
-    head = ["#", "Area", "Location", "Days", "Aging", "Container No", "Size/Type", "Group",
-            "Move Code", "EQ Date", "Built Year", "RF Brand"]
-    widths = [6, 8, 11, 8, 12, 16, 10, 8, 11, 12, 11, 13]
-    ws.append(head)
-    for i, r in enumerate(ws_rows, 1):
-        lo = r["d"] // 50 * 50
-        ws.append([i, r["ar"], r["loc"], r["d"], f"{lo}–{lo + 49} วัน", r["cn"], r["st"], r["gp"],
-                   r["mc"], r["eq"], r["by"] or "", r["rf"]])
     thin = Side(style="thin", color="BFC5CE")
     border = Border(top=thin, left=thin, bottom=thin, right=thin)
-    red_fill = PatternFill("solid", fgColor="FEE2E2")
-    yellow_fill = PatternFill("solid", fgColor="FFF59D")
-    for c, w in zip("ABCDEFGHIJKL", widths):
-        ws.column_dimensions[c].width = w
-    for cell in ws[1]:
-        cell.font = Font(bold=True, color="FFFFFF")
-        cell.fill = PatternFill("solid", fgColor="1F5FBF")
-        cell.alignment = Alignment(horizontal="center")
-        cell.border = border
-    for row in ws.iter_rows(min_row=2):
-        fill = yellow_fill if row[3].value >= 200 else red_fill
-        for cell in row:
-            cell.fill = fill
-            cell.border = border
-        row[3].font = Font(bold=True, color="B91C1C")
-    ws.freeze_panes = "A2"
-    ws.auto_filter.ref = f"A1:L{max(len(ws_rows) + 1, 1)}"
+    head_fill = PatternFill("solid", fgColor="1F5FBF")
+    total_fill = PatternFill("solid", fgColor="EEF1F5")
+
+    def style_head(cells):
+        for c in cells:
+            c.font = Font(bold=True, color="FFFFFF")
+            c.fill = head_fill
+            c.alignment = Alignment(horizontal="center")
+            c.border = border
+
+    in_bucket = {b[0]: [r for r in rows if b[1] <= r["d"] <= b[2]] for b in DAY_BUCKETS}
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "สรุป"
+    ws["A1"] = "EQ STAYING — สรุปตามกลุ่มวัน"
+    ws["A1"].font = Font(bold=True, size=14)
+    ws["A2"] = f"ไฟล์: {meta['source']} · EQ Date ล่าสุด: {meta['lastEq']} · ทั้งหมด {len(rows):,} ตู้"
+    ws["A2"].font = Font(color="6B7684")
+
+    def table(start_row, title, keys, key_fn):
+        ws.cell(start_row, 1, title).font = Font(bold=True, size=12)
+        r0 = start_row + 1
+        hdr = [""] + [b[0] for b in DAY_BUCKETS] + ["รวม"]
+        for j, h in enumerate(hdr, 1):
+            ws.cell(r0, j, h)
+        style_head(ws[r0][:len(hdr)])
+        for b, cell in zip(DAY_BUCKETS, ws[r0][1:len(DAY_BUCKETS) + 1]):
+            cell.fill = PatternFill("solid", fgColor=b[3])
+            cell.font = Font(bold=True, color=b[4])
+        for i, k in enumerate(keys + ["รวม"], 1):
+            rr = r0 + i
+            vals = [sum(1 for x in in_bucket[b[0]] if k == "รวม" or key_fn(x) == k) for b in DAY_BUCKETS]
+            for j, v in enumerate([k] + vals + [sum(vals)], 1):
+                c = ws.cell(rr, j, v)
+                c.border = border
+                if k == "รวม" or j in (1, len(hdr)):
+                    c.font = Font(bold=True)
+                if k == "รวม":
+                    c.fill = total_fill
+        return r0 + len(keys) + 3
+
+    nxt = table(4, "แยกตาม Area", ["BKK", "LCH"], lambda x: x["ar"])
+    nxt = table(nxt, "แยกตาม Group", ["AV", "DMG", "OTHER"], lambda x: x["gp"])
+    sizes = sorted({x["st"] for x in rows}, key=lambda s: -sum(1 for x in rows if x["st"] == s))
+    nxt = table(nxt, "แยกตาม Size/Type", sizes, lambda x: x["st"])
+    locs = sorted({(x["ar"], x["loc"]) for x in rows})
+    table(nxt, "แยกตาม Location", [l for _, l in locs], lambda x: x["loc"])
+    ws.column_dimensions["A"].width = 16
+    for c in "BCDEF":
+        ws.column_dimensions[c].width = 13
+
+    head = ["#", "Area", "Location", "Days", "Container No", "Size/Type", "Group",
+            "Move Code", "EQ Date", "Built Year", "RF Brand"]
+    widths = [6, 8, 11, 8, 16, 10, 8, 11, 12, 11, 13]
+    for name, lo, hi, fill_hex, font_hex in DAY_BUCKETS:
+        sh = wb.create_sheet(name)
+        sh.append(head)
+        style_head(sh[1])
+        fill = PatternFill("solid", fgColor=fill_hex)
+        for i, r in enumerate(sorted(in_bucket[name], key=lambda x: -x["d"]), 1):
+            sh.append([i, r["ar"], r["loc"], r["d"], r["cn"], r["st"], r["gp"],
+                       r["mc"], r["eq"], r["by"] or "", r["rf"]])
+            for c in sh[i + 1]:
+                c.fill = fill
+                c.border = border
+            sh.cell(i + 1, 4).font = Font(bold=True, color=font_hex)
+        for c, w in zip("ABCDEFGHIJK", widths):
+            sh.column_dimensions[c].width = w
+        sh.freeze_panes = "A2"
+        sh.auto_filter.ref = f"A1:K{len(in_bucket[name]) + 1}"
+        sh.sheet_properties.tabColor = font_hex if name != "200+ วัน" else "FDE047"
     wb.save(path)
-    return len(ws_rows)
+    return {b[0]: len(in_bucket[b[0]]) for b in DAY_BUCKETS}
 
 
 def archive(src, rows, meta):
-    """เก็บไฟล์ของรอบนี้ไว้ในโฟลเดอร์วันที่ เช่น EQ STAYING/2026-10-05/"""
-    day = datetime.now().strftime("%Y-%m-%d")
+    """เก็บไฟล์ของรอบนี้ไว้ในโฟลเดอร์วันที่ เช่น EQ STAYING/2026-10-05/
+    (ถ้าไฟล์ต้นฉบับอยู่ในโฟลเดอร์วันที่อยู่แล้ว จะใช้โฟลเดอร์นั้น)"""
+    parent = os.path.dirname(os.path.abspath(src))
+    if os.path.dirname(parent) == HERE and re.fullmatch(r"\d{4}-\d{2}-\d{2}", os.path.basename(parent)):
+        day = os.path.basename(parent)
+    else:
+        day = datetime.now().strftime("%Y-%m-%d")
     folder = os.path.join(HERE, day)
     os.makedirs(folder, exist_ok=True)
     # ไฟล์ต้นฉบับ: ย้ายเข้าโฟลเดอร์วัน (ถ้ายังไม่อยู่ในนั้น)
@@ -179,11 +237,11 @@ def archive(src, rows, meta):
     if os.path.abspath(src) != os.path.abspath(dest_src):
         shutil.move(src, dest_src)
     shutil.copy2(OUT, os.path.join(folder, f"EQ_STAYING_Dashboard_{day}.html"))
-    n = write_long_staying_xlsx(rows, os.path.join(folder, f"LONG_STAYING_{day}.xlsx"))
+    counts = write_summary_xlsx(rows, meta, os.path.join(folder, f"EQ_STAYING_Summary_{day}.xlsx"))
     print(f"Archive: {folder}")
     print(f"  - {os.path.basename(src)} (ไฟล์ต้นฉบับ)")
     print(f"  - EQ_STAYING_Dashboard_{day}.html")
-    print(f"  - LONG_STAYING_{day}.xlsx ({n} ตู้)")
+    print(f"  - EQ_STAYING_Summary_{day}.xlsx  " + " · ".join(f"{k}: {v:,}" for k, v in counts.items()))
 
 
 if __name__ == "__main__":
