@@ -116,8 +116,6 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
       <div class="legend"><span><i style="background:var(--g)"></i>0–30</span><span><i style="background:var(--o)"></i>31–99</span><span><i style="background:var(--r)"></i>100–199</span><span><i style="background:var(--y)"></i>200+</span></div></div>
   </div>
 
-  <div class="card" id="rfCard" style="margin-bottom:12px"><h2>Reefer (22RE / 45RE) ตาม RF Brand</h2><div class="scroll" id="tRf"></div></div>
-
   <div class="card alert" style="margin-bottom:12px">
     <div class="tablebar">
       <h2 style="margin:0">⚠ แจ้งเตือน LONG STAYING (≥ 100 วัน) — <span id="alertCount"></span></h2>
@@ -280,16 +278,6 @@ function render(){
     locRows.map(x=>`<tr style="cursor:pointer" data-loc="${x.l}"><td>${x.ar}</td><td><b>${x.l}</b></td><td class="num">${fmt(x.av)}</td><td class="num">${fmt(x.dmg)}</td><td class="num">${fmt(x.n)}</td><td class="num dr">${fmt(x.b[2]+x.b[3])}</td><td><div class="stack" title="${BUCKETS.map((b,i)=>b.l+": "+x.b[i]).join(" | ")}">${x.b.map((v,i)=>`<span style="width:${v/x.n*100}%;background:${BUCKETS[i].c}"></span>`).join("")}</div></td></tr>`).join("") + `</table>`;
   tLoc.onclick=e=>{const tr=e.target.closest("tr[data-loc]"); if(!tr) return; S.loc = S.loc===tr.dataset.loc?"ALL":tr.dataset.loc; render();};
 
-
-  // Reefer by RF brand
-  const rr = rows.filter(r=>REEFER.includes(r.st));
-  if(!rr.length){ tRf.innerHTML=`<div class="muted">ไม่มีตู้ Reefer ในตัวกรองปัจจุบัน</div>`; }
-  else{
-    const brands = uniq(rr.map(r=>r.rf||"(ไม่ระบุ)"));
-    tRf.innerHTML = `<table><tr><th>RF Brand</th>${REEFER.map(s=>`<th class="num">${s}</th>`).join("")}<th class="num">AV</th><th class="num">DMG</th><th class="num">BKK</th><th class="num">LCH</th><th class="num">รวม</th><th class="num">≥100</th><th class="num">Max Days</th></tr>` +
-      brands.map(b=>{const br=rr.filter(r=>(r.rf||"(ไม่ระบุ)")===b); return `<tr><td><b>${esc(b)}</b></td>${REEFER.map(s=>`<td class="num">${fmt(br.filter(r=>r.st===s).length)}</td>`).join("")}<td class="num">${fmt(br.filter(r=>r.gp==="AV").length)}</td><td class="num">${fmt(br.filter(r=>r.gp==="DMG").length)}</td><td class="num">${fmt(br.filter(r=>r.ar==="BKK").length)}</td><td class="num">${fmt(br.filter(r=>r.ar==="LCH").length)}</td><td class="num"><b>${fmt(br.length)}</b></td><td class="num dr">${fmt(br.filter(r=>r.d>=100).length)}</td><td class="num">${dayCell(Math.max(...br.map(r=>r.d)))}</td></tr>`;}).join("") +
-      `<tr class="tot"><td>รวม</td>${REEFER.map(s=>`<td class="num">${fmt(rr.filter(r=>r.st===s).length)}</td>`).join("")}<td class="num">${fmt(rr.filter(r=>r.gp==="AV").length)}</td><td class="num">${fmt(rr.filter(r=>r.gp==="DMG").length)}</td><td class="num">${fmt(rr.filter(r=>r.ar==="BKK").length)}</td><td class="num">${fmt(rr.filter(r=>r.ar==="LCH").length)}</td><td class="num">${fmt(rr.length)}</td><td class="num dr">${fmt(rr.filter(r=>r.d>=100).length)}</td><td></td></tr></table>`;
-  }
 
   // Alert list (>=100)
   const al = rows.filter(r=>r.d>=100).sort((a,b)=>b.d-a.d);
