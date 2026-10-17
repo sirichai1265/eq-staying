@@ -6,168 +6,318 @@
 <title>EQ Staying Dashboard</title>
 <style>
 :root{
-  --bg:#f4f6f9; --card:#ffffff; --ink:#1b2430; --muted:#6b7684; --line:#e3e7ed; --chip:#eef1f5;
-  --accent:#1f5fbf; --accent-ink:#fff;
-  --av:#2f6fd6; --dmg:#c2410c; --oth:#7c8796;
-  --g:#15803d; --g-bg:#dcfce7; --o:#c2410c; --o-bg:#ffedd5; --r:#b91c1c; --r-bg:#fee2e2; --y:#fde047;
+  --bg:#f3f5f9; --card:#ffffff; --ink:#172033; --ink2:#3b4658; --muted:#6b7684; --line:#e3e7ee; --chip:#eef1f6;
+  --accent:#1f5fbf; --accent-ink:#fff; --accent-soft:#e8f0fc;
+  --hdr1:#0e2547; --hdr2:#1f5fbf;
+  --av:#2f6fd6; --dmg:#c2410c; --oth:#7c8796; --rel:#0f766e; --rel-bg:#ccfbf1;
+  --g:#15803d; --g-bg:#dcfce7; --o:#c2410c; --o-bg:#ffedd5; --r:#b91c1c; --r-bg:#fee2e2; --y:#fde047; --y-bg:#fef9c3;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.06);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#11151b; --card:#1a2029; --ink:#e6eaf0; --muted:#97a1ae; --line:#2b333f; --chip:#232b36;
-    --accent:#4c8df0; --accent-ink:#fff; --av:#5b93ef; --dmg:#f08a4b; --oth:#8d97a5;
-    --g:#4ade80; --g-bg:#14361f; --o:#fb923c; --o-bg:#3d2412; --r:#f87171; --r-bg:#3f1616; --y:#facc15;
+    --bg:#0f141b; --card:#18202b; --ink:#e6eaf0; --ink2:#c3cad5; --muted:#97a1ae; --line:#2a3340; --chip:#222b37;
+    --accent:#5b9af5; --accent-ink:#0b1220; --accent-soft:#1d2b40; --hdr1:#0a1628; --hdr2:#173f7d;
+    --av:#5b93ef; --dmg:#f08a4b; --oth:#8d97a5; --rel:#2dd4bf; --rel-bg:#123a36;
+    --g:#4ade80; --g-bg:#14361f; --o:#fb923c; --o-bg:#3d2412; --r:#f87171; --r-bg:#3f1616; --y:#facc15; --y-bg:#3a3410;
+    --shadow:none;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#11151b; --card:#1a2029; --ink:#e6eaf0; --muted:#97a1ae; --line:#2b333f; --chip:#232b36;
-  --accent:#4c8df0; --accent-ink:#fff; --av:#5b93ef; --dmg:#f08a4b; --oth:#8d97a5;
-  --g:#4ade80; --g-bg:#14361f; --o:#fb923c; --o-bg:#3d2412; --r:#f87171; --r-bg:#3f1616; --y:#facc15;
+  --bg:#0f141b; --card:#18202b; --ink:#e6eaf0; --ink2:#c3cad5; --muted:#97a1ae; --line:#2a3340; --chip:#222b37;
+  --accent:#5b9af5; --accent-ink:#0b1220; --accent-soft:#1d2b40; --hdr1:#0a1628; --hdr2:#173f7d;
+  --av:#5b93ef; --dmg:#f08a4b; --oth:#8d97a5; --rel:#2dd4bf; --rel-bg:#123a36;
+  --g:#4ade80; --g-bg:#14361f; --o:#fb923c; --o-bg:#3d2412; --r:#f87171; --r-bg:#3f1616; --y:#facc15; --y-bg:#3a3410;
+  --shadow:none;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI","Leelawadee UI",Tahoma,sans-serif}
-.wrap{max-width:1400px;margin:0 auto;padding:16px}
-header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px;margin-bottom:12px}
-h1{font-size:22px;margin:0}
-.sub{color:var(--muted);font-size:12.5px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
-h2{font-size:15px;margin:0 0 10px}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI","Leelawadee UI",Tahoma,sans-serif}
+.wrap{max-width:1400px;margin:0 auto;padding:0 16px 32px}
+/* header */
+.top{background:linear-gradient(120deg,var(--hdr1),var(--hdr2));color:#fff}
+.top .wrap{padding-top:18px;padding-bottom:0}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+h1{font-size:22px;margin:0;letter-spacing:.2px}
+.tag{font-size:12.5px;opacity:.8;margin-top:2px}
+.hbtn{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:5px 14px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none}
+.hbtn:hover{background:rgba(255,255,255,.18)}
+.tabs{display:flex;gap:4px;margin-top:16px;overflow-x:auto}
+.tab{border:0;background:transparent;color:rgba(255,255,255,.75);font:inherit;font-size:14px;font-weight:600;padding:10px 16px;border-radius:10px 10px 0 0;cursor:pointer;white-space:nowrap}
+.tab:hover{color:#fff;background:rgba(255,255,255,.08)}
+.tab.on{background:var(--bg);color:var(--ink)}
+.tab .cnt{display:inline-block;min-width:22px;padding:0 7px;margin-left:6px;border-radius:999px;font-size:12px;background:rgba(255,255,255,.18)}
+.tab.on .cnt{background:var(--chip);color:var(--ink2)}
+.tab .cnt.hot{background:var(--r);color:#fff}
+.page{display:none;padding-top:16px}
+.page.on{display:block}
+/* cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+h2{font-size:15.5px;margin:0 0 4px}
+.hint{color:var(--muted);font-size:12.5px;margin:0 0 12px}
+.mb{margin-bottom:14px}
 /* filters */
-.filters{display:grid;gap:10px;margin-bottom:12px}
+.filters{display:grid;gap:10px}
 .frow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .flabel{font-size:12px;color:var(--muted);min-width:86px;font-weight:600}
 .btn{border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:4px 12px;font:inherit;font-size:13px;cursor:pointer}
 .btn:hover{border-color:var(--accent)}
 .btn.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.btn .n{opacity:.7;font-size:11.5px;margin-left:4px}
-select,input[type=search]{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:4px 8px;font:inherit;font-size:13px}
+.btn.on span{color:inherit!important;background:none!important}
+.btn .n{opacity:.7;font-size:11.5px;margin-left:5px}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.solid{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+select,input[type=search]{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:5px 9px;font:inherit;font-size:13px}
+input[type=search]{min-width:220px}
 .reset{margin-left:auto}
+details.more summary{cursor:pointer;color:var(--accent);font-size:13px;font-weight:600;list-style:none}
+details.more summary::-webkit-details-marker{display:none}
+details.more[open] summary{margin-bottom:10px}
 /* kpis */
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
-.kpi{padding:12px 14px;cursor:default}
-.kpi .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
-.kpi .l{font-size:12px;color:var(--muted)}
-.kpi.click{cursor:pointer}
-.kpi.click:hover{border-color:var(--accent)}
-.bar-l{border-left:4px solid var(--c,var(--line))}
-/* grids */
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{position:relative;overflow:hidden;padding:14px 16px}
+.kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--c,var(--line))}
+.kpi .l{font-size:12.5px;color:var(--muted);font-weight:600}
+.kpi .v{font-size:30px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi .s{font-size:12px;color:var(--muted)}
+.kpi.click{cursor:pointer;transition:transform .08s,border-color .08s}
+.kpi.click:hover{border-color:var(--accent);transform:translateY(-1px)}
+.kpi.sel{outline:2px solid var(--accent)}
+/* layout */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid32{display:grid;grid-template-columns:3fr 2fr;gap:14px}
+@media (max-width:980px){.grid2,.grid32{grid-template-columns:1fr}}
+/* aging bar chart */
+.aging{display:grid;gap:14px}
+.arow .ah{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.arow .ah b{font-size:14px}
+.arow .ah span{font-size:12.5px;color:var(--muted)}
+.bar{display:flex;gap:2px;height:30px}
+.bar .seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;min-width:2px;cursor:default;overflow:hidden;white-space:nowrap}
+.bar .seg:first-child{border-radius:6px 0 0 6px}
+.bar .seg:last-child{border-radius:0 6px 6px 0}
+.bar .seg:only-child{border-radius:6px}
+.bar .seg.Y{color:#713f12}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--ink2);margin-top:12px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.hbars{display:grid;gap:9px}
+.hb{display:grid;grid-template-columns:96px 1fr 92px;align-items:center;gap:10px;font-size:13px}
+.hb .track{background:var(--chip);border-radius:6px;height:22px;overflow:hidden}
+.hb .fill{height:100%;border-radius:6px}
+.hb .val{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.hb .val b{color:var(--ink)}
+/* tables */
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
-th{font-size:12px;color:var(--muted);font-weight:600;background:var(--card);position:sticky;top:0}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:600;background:var(--card);position:sticky;top:0;z-index:1}
 td.num,th.num{text-align:right}
-tr.tot td{font-weight:700;border-top:2px solid var(--line)}
+tr.tot td{font-weight:700;border-top:2px solid var(--line);background:var(--chip)}
+tbody tr:hover td,table tr:hover td{background:var(--accent-soft)}
 .scroll{overflow:auto}
-.stack{display:flex;height:14px;border-radius:4px;overflow:hidden;background:var(--chip);min-width:120px}
+.stack{display:flex;gap:1px;height:14px;border-radius:4px;overflow:hidden;background:var(--chip);min-width:130px}
 .stack span{display:block;height:100%}
-.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-top:8px}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 /* aging badges */
 .dg{color:var(--g);font-weight:700}
 .do{color:var(--o);font-weight:700}
 .dr{color:var(--r);font-weight:700}
 .dy{color:#b91c1c;font-weight:800;background:var(--y);padding:1px 6px;border-radius:4px}
-tr.rowy td{background:color-mix(in srgb,var(--y) 28%,transparent)}
+.dn{color:var(--muted)}
+tr.rowy td{background:var(--y-bg)}
 tr.rowr td{background:var(--r-bg)}
-.gp{font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:999px;color:#fff}
+.gp{font-size:11.5px;font-weight:700;padding:1px 8px;border-radius:999px;color:#fff;display:inline-block}
 .gp.AV{background:var(--av)} .gp.DMG{background:var(--dmg)} .gp.OTHER{background:var(--oth)}
-.alert{border-color:var(--r);background:linear-gradient(0deg,var(--card),var(--card)) padding-box}
+.mv{font-size:11.5px;font-weight:700;padding:1px 8px;border-radius:6px;background:var(--chip);color:var(--ink2);border:1px solid var(--line)}
+.rel{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:var(--rel-bg);color:var(--rel);margin-left:6px;white-space:nowrap}
+.alert{border:1px solid color-mix(in srgb,var(--r) 45%,var(--line))}
 .alert h2{color:var(--r)}
-.pager{display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:8px;flex-wrap:wrap}
-.tablebar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px}
+.pager{display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
+.tablebar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px}
 th.sort{cursor:pointer}
 th.sort:hover{color:var(--ink)}
 .rfcol{display:none}
 .showrf .rfcol{display:table-cell}
 .muted{color:var(--muted)}
-.mono{font-family:Consolas,monospace}
-tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 8px;border-top:2px solid var(--line)}
+.mono{font-family:Consolas,"Cascadia Mono",monospace}
+tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 9px;border-top:2px solid var(--line)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.note{font-size:12.5px;color:var(--muted);margin-top:10px}
 </style>
 </head>
 <body>
+<div class="top">
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>EQ STAYING Dashboard</h1>
+        <div class="tag">ติดตามตู้ AV / DMG · LONG STAYING · ตู้ปล่อยออกจากลาน</div>
+      </div>
+      <div class="frow">
+        <a class="hbtn" href="https://sirichai1265.github.io/equipment/">← EQUIPMENT</a>
+        <button class="hbtn" id="themeBtn" title="สลับธีม">◐ Theme</button>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab" data-tab="overview">📊 ภาพรวม</button>
+      <button class="tab" data-tab="long">⚠ LONG STAYING <span class="cnt hot" id="tabLong"></span></button>
+      <button class="tab" data-tab="gate">🚚 ตู้ปล่อยออก <span class="cnt" id="tabGate"></span></button>
+      <button class="tab" data-tab="list">📋 รายการตู้ <span class="cnt" id="tabList"></span></button>
+    </nav>
+  </div>
+</div>
+
 <div class="wrap">
-  <header>
-    <div>
-      <h1>EQ STAYING Dashboard — AV / DMG / LONG STAYING</h1>
-    </div>
-    <div class="frow"><a class="btn" href="https://sirichai1265.github.io/equipment/" style="text-decoration:none">← EQUIPMENT</a><button class="btn" id="themeBtn" title="สลับธีม">◐ Theme</button></div>
-  </header>
-
-  <div class="card filters">
+  <!-- ตัวกรอง (ใช้กับ ภาพรวม / LONG STAYING / รายการตู้) -->
+  <div class="card filters mb" id="filterCard" style="margin-top:16px">
     <div class="frow"><span class="flabel">Area</span><div id="fArea" class="frow"></div>
-      <button class="btn reset" id="resetBtn">↺ Reset filters</button></div>
+      <button class="btn reset" id="resetBtn">↺ ล้างตัวกรอง</button></div>
     <div class="frow"><span class="flabel">Group</span><div id="fGroup" class="frow"></div></div>
-    <div class="frow"><span class="flabel">Size/Type</span><div id="fSize" class="frow"></div></div>
     <div class="frow"><span class="flabel">Days</span><div id="fBucket" class="frow"></div></div>
-    <div class="frow">
-      <span class="flabel">Built Year</span>
-      <select id="byFrom"></select><span class="muted">ถึง</span><select id="byTo"></select>
-      <span class="flabel" style="min-width:auto;margin-left:14px">Location</span><select id="fLoc"></select>
-      <span class="flabel" style="min-width:auto;margin-left:14px">Move Code</span><select id="fMc"></select>
-      <span id="rfWrap" style="display:none"><span class="flabel" style="min-width:auto;margin-left:14px">RF Brand</span><select id="fRf"></select></span>
-    </div>
+    <details class="more" id="moreFilters">
+      <summary>＋ ตัวกรองเพิ่มเติม (Size/Type, Built Year, Location, Move Code)</summary>
+      <div class="filters">
+        <div class="frow"><span class="flabel">Size/Type</span><div id="fSize" class="frow"></div></div>
+        <div class="frow">
+          <span class="flabel">Built Year</span>
+          <select id="byFrom"></select><span class="muted">ถึง</span><select id="byTo"></select>
+          <span class="flabel" style="min-width:auto;margin-left:14px">Location</span><select id="fLoc"></select>
+          <span class="flabel" style="min-width:auto;margin-left:14px">Move Code</span><select id="fMc"></select>
+          <span id="rfWrap" style="display:none"><span class="flabel" style="min-width:auto;margin-left:14px">RF Brand</span><select id="fRf"></select></span>
+        </div>
+      </div>
+    </details>
   </div>
 
-  <div class="kpis" id="kpis"></div>
-
-  <div class="grid2">
-    <div class="card"><h2>สรุปตาม Area × Group</h2><div class="scroll" id="tArea"></div></div>
-    <div class="card"><h2>Aging ตาม Location</h2><div class="scroll" id="tLoc"></div>
-      <div class="legend"><span><i style="background:var(--g)"></i>0–30</span><span><i style="background:var(--o)"></i>31–99</span><span><i style="background:var(--r)"></i>100–199</span><span><i style="background:var(--y)"></i>200+</span></div></div>
-  </div>
-
-  <div class="card alert" style="margin-bottom:12px">
-    <div class="tablebar">
-      <h2 style="margin:0">⚠ แจ้งเตือน LONG STAYING (≥ 100 วัน) — <span id="alertCount"></span></h2>
-      <div class="frow">
-        <input type="search" id="alertQ" placeholder="ค้นหาเบอร์ตู้ LONG STAYING">
-        <button class="btn" id="alertToggle">▸ แสดงรายการ</button>
-        <button class="btn" id="xlsxBtn">⬇ Export Excel</button>
+  <!-- ===== ภาพรวม ===== -->
+  <section class="page" id="pg-overview">
+    <div class="kpis mb" id="kpis"></div>
+    <div class="grid32 mb">
+      <div class="card">
+        <h2>อายุตู้ในลาน (Aging)</h2>
+        <p class="hint">สัดส่วนตู้ตามจำนวนวันที่อยู่ในลาน · ชี้ที่แถบเพื่อดูจำนวน</p>
+        <div class="aging" id="agingChart"></div>
+        <div class="legend"><span><i style="background:var(--g)"></i>0–30 วัน ปกติ</span><span><i style="background:var(--o)"></i>31–99 วัน เฝ้าระวัง</span><span><i style="background:var(--r)"></i>100–199 วัน ค้างนาน</span><span><i style="background:var(--y)"></i>200+ วัน เร่งจัดการ</span></div>
+      </div>
+      <div class="card">
+        <h2>สรุปตาม Area × Group</h2>
+        <p class="hint">AV = IEC/IED/IEP/IER/IEW/VED · DMG = OER</p>
+        <div class="scroll" id="tArea"></div>
       </div>
     </div>
-    <div class="frow" style="margin-top:8px"><span class="flabel">กลุ่มละ 50 วัน</span><div id="alertBands" class="frow"></div></div>
-    <div class="scroll" style="max-height:340px;margin-top:8px;display:none" id="tAlert"></div>
-  </div>
+    <div class="card">
+      <h2>Aging ตาม Location</h2>
+      <p class="hint">คลิกแถวเพื่อกรองเฉพาะ Location นั้น</p>
+      <div class="scroll" id="tLoc"></div>
+    </div>
+  </section>
 
-  <div class="card">
-    <div class="tablebar">
-      <h2 style="margin:0">รายการตู้ (เรียงตาม Days มาก → น้อย)</h2>
-      <div class="frow">
-        <input type="search" id="q" placeholder="ค้นหา Container No">
-        <button class="btn" id="csvBtn">⬇ Export CSV</button>
+  <!-- ===== LONG STAYING ===== -->
+  <section class="page" id="pg-long">
+    <div class="card alert">
+      <div class="tablebar">
+        <h2 style="margin:0">⚠ แจ้งเตือน LONG STAYING (≥ 100 วัน) — <span id="alertCount"></span></h2>
+        <div class="frow">
+          <input type="search" id="alertQ" placeholder="ค้นหาเบอร์ตู้ LONG STAYING">
+          <button class="btn" id="alertToggle">▸ แสดงรายการ</button>
+          <button class="btn solid" id="xlsxBtn">⬇ Export Excel</button>
+        </div>
+      </div>
+      <div class="frow" style="margin-top:8px"><span class="flabel">กลุ่มละ 50 วัน</span><div id="alertBands" class="frow"></div></div>
+      <div class="scroll" style="max-height:560px;margin-top:10px;display:none" id="tAlert"></div>
+    </div>
+  </section>
+
+  <!-- ===== ตู้ปล่อยออก ===== -->
+  <section class="page" id="pg-gate">
+    <div class="card mb filters">
+      <div class="frow"><span class="flabel">วันที่ปล่อย</span><div id="gDate" class="frow"></div></div>
+      <div class="frow"><span class="flabel">Move</span><div id="gMove" class="frow"></div></div>
+      <div class="frow"><span class="flabel">Area</span><div id="gArea" class="frow"></div></div>
+    </div>
+    <div class="kpis mb" id="gKpis"></div>
+    <div class="grid2 mb">
+      <div class="card">
+        <h2>วันค้างในลานก่อนปล่อยออก</h2>
+        <p class="hint">นับจาก EQ Date (วันเข้าลาน) ถึง Gate Date (วันปล่อยออก)</p>
+        <div class="hbars" id="gBuckets"></div>
+      </div>
+      <div class="card">
+        <h2 id="gDailyTitle">สรุปรายวัน</h2>
+        <p class="hint">จำนวนตู้ปล่อยออกแยกตามกลุ่มวันค้าง</p>
+        <div class="scroll" id="gDaily"></div>
       </div>
     </div>
-    <div class="frow" style="margin-bottom:8px"><span class="flabel">กลุ่มละ 50 วัน</span><div id="mainBands" class="frow"></div></div>
-    <div class="scroll" id="mainWrap"><table id="tMain"></table></div>
-    <div class="pager" id="pager"></div>
-  </div>
+    <div class="card">
+      <div class="tablebar">
+        <h2 style="margin:0">รายงานตู้ค้างนานที่ปล่อยออก (เรียงวันค้างมาก → น้อย)</h2>
+        <div class="frow">
+          <input type="search" id="gQ" placeholder="ค้นหาเบอร์ตู้">
+          <button class="btn solid" id="gXlsx">⬇ Export Excel</button>
+        </div>
+      </div>
+      <div class="frow" style="margin-bottom:10px"><span class="flabel">วันค้าง</span><div id="gBucketBtns" class="frow"></div></div>
+      <div class="scroll" style="max-height:640px" id="gTable"></div>
+    </div>
+  </section>
+
+  <!-- ===== รายการตู้ ===== -->
+  <section class="page" id="pg-list">
+    <div class="card">
+      <div class="tablebar">
+        <h2 style="margin:0">รายการตู้ในลาน (เรียงตาม Days มาก → น้อย)</h2>
+        <div class="frow">
+          <input type="search" id="q" placeholder="ค้นหา Container No">
+          <button class="btn" id="csvBtn">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="frow" style="margin-bottom:10px"><span class="flabel">กลุ่มละ 50 วัน</span><div id="mainBands" class="frow"></div></div>
+      <div class="scroll" id="mainWrap"><table id="tMain"></table></div>
+      <div class="pager" id="pager"></div>
+    </div>
+  </section>
 </div>
 
 <script>
 const DATA = /*__DATA__*/null;
+const GATE = /*__GATE__*/null || [];
 const META = /*__META__*/null;
 const REEFER = ["22RE","45RE"];
 const BUCKETS = [
-  {k:"G",l:"0–30",cls:"dg",c:"var(--g)",t:d=>d<=30},
-  {k:"O",l:"31–99",cls:"do",c:"var(--o)",t:d=>d>=31&&d<=99},
-  {k:"R",l:"100–199",cls:"dr",c:"var(--r)",t:d=>d>=100&&d<200},
-  {k:"Y",l:"200+",cls:"dy",c:"var(--y)",t:d=>d>=200},
+  {k:"G",l:"0–30",name:"ปกติ",cls:"dg",c:"var(--g)",t:d=>d<=30},
+  {k:"O",l:"31–99",name:"เฝ้าระวัง",cls:"do",c:"var(--o)",t:d=>d>=31&&d<=99},
+  {k:"R",l:"100–199",name:"ค้างนาน",cls:"dr",c:"var(--r)",t:d=>d>=100&&d<200},
+  {k:"Y",l:"200+",name:"เร่งจัดการ",cls:"dy",c:"var(--y)",t:d=>d>=200},
 ];
 const bucketOf = d => BUCKETS.find(b=>b.t(d));
 const GROUPS = ["AV","DMG","OTHER"];
 const fmt = n => n.toLocaleString("en-US");
+const pct = (a,b) => b ? Math.round(a/b*100) : 0;
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const uniq = (arr) => [...new Set(arr)].sort();
+const dmy = s => s ? `${s.slice(8,10)}/${s.slice(5,7)}` : "";
 
 const years = uniq(DATA.map(r=>r.by).filter(Boolean));
 const sizes = Object.entries(DATA.reduce((m,r)=>(m[r.st]=(m[r.st]||0)+1,m),{})).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+
+// ตู้ที่ปล่อยออกแล้วหลังวันที่ของข้อมูล STAYING
+const RELEASED = new Map();
+GATE.forEach(g=>{ if(g.gd>=META.lastEq && !RELEASED.has(g.cn)) RELEASED.set(g.cn,g); });
+const relBadge = cn => { const g=RELEASED.get(cn); return g?`<span class="rel" title="ปล่อยออก ${g.mv} ${g.gd} ${g.gt}">ปล่อยแล้ว ${g.mv} ${dmy(g.gd)}</span>`:""; };
 
 const S = { area:"ALL", group:"ALL", sizes:new Set(), bucket:"ALL", byFrom:years[0], byTo:years[years.length-1],
             loc:"ALL", mc:"ALL", rf:"ALL", q:"", page:0, sortKey:"d", sortDir:-1 };
 const PAGE = 100;
 
+// ===== tabs =====
+let TAB="overview";
+function setTab(t){
+  TAB=t;
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));
+  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("on",p.id==="pg-"+t));
+  filterCard.style.display = t==="gate" ? "none" : "";
+  try{ history.replaceState(null,"",location.pathname+location.search+(t==="overview"?"":"#"+t)); }catch(e){}
+}
+tabs.onclick=e=>{const b=e.target.closest(".tab"); if(b) setTab(b.dataset.tab);};
 
-function btnGroup(el, items, key, onClick){
+function btnGroup(el, items, onClick){
   el.innerHTML = items.map(([v,label])=>`<button class="btn" data-v="${esc(v)}">${label}</button>`).join("");
   el.onclick = e => { const b=e.target.closest("button"); if(!b) return; onClick(b.dataset.v); };
 }
@@ -175,16 +325,16 @@ function fillSelect(el, opts, allLabel){
   el.innerHTML = (allLabel?`<option value="ALL">${allLabel}</option>`:"") + opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("");
 }
 
-btnGroup(fArea, [["ALL","ทั้งหมด"],["BKK","BKK"],["LCH","LCH"]], "area", v=>{S.area=v;S.loc="ALL";render();});
-btnGroup(fGroup, [["ALL","ทั้งหมด"],["AV","AV"],["DMG","DMG"],["OTHER","OTHER"]], "group", v=>{S.group=v;render();});
-btnGroup(fSize, [["ALL","ทั้งหมด"],["REEFER","❄ Reefer (22RE+45RE)"],...sizes.map(s=>[s,s])], "size", v=>{
+btnGroup(fArea, [["ALL","ทั้งหมด"],["BKK","BKK"],["LCH","LCH"]], v=>{S.area=v;S.loc="ALL";render();});
+btnGroup(fGroup, [["ALL","ทั้งหมด"],["AV","AV"],["DMG","DMG"],["OTHER","OTHER"]], v=>{S.group=v;render();});
+btnGroup(fSize, [["ALL","ทั้งหมด"],["REEFER","❄ Reefer (22RE+45RE)"],...sizes.map(s=>[s,s])], v=>{
   if(v==="ALL") S.sizes.clear();
   else if(v==="REEFER"){ const both=REEFER.every(x=>S.sizes.has(x))&&S.sizes.size===2; S.sizes=new Set(both?[]:REEFER); }
   else S.sizes.has(v)?S.sizes.delete(v):S.sizes.add(v);
   if(!showRf()) S.rf="ALL";
   render();
 });
-btnGroup(fBucket, [["ALL","ทั้งหมด"],...BUCKETS.map(b=>[b.k,`<span class="${b.cls}">${b.l} วัน</span>`]),["LONG","≥100 วัน"]], "bucket", v=>{S.bucket=v;render();});
+btnGroup(fBucket, [["ALL","ทั้งหมด"],...BUCKETS.map(b=>[b.k,`<span class="${b.cls}">${b.l} วัน</span>`]),["LONG","≥100 วัน"]], v=>{S.bucket=v;render();});
 fillSelect(byFrom, years); fillSelect(byTo, years);
 byFrom.value=S.byFrom; byTo.value=S.byTo;
 byFrom.onchange=()=>{S.byFrom=+byFrom.value;render();};
@@ -229,7 +379,14 @@ function setButtons(el, active, counts){
 }
 function countBy(rows, fn){ const m={}; rows.forEach(r=>{const k=fn(r); m[k]=(m[k]||0)+1;}); return m; }
 
-function dayCell(d){ const b=bucketOf(d); return `<span class="${b.cls}">${d}</span>`; }
+function dayCell(d){ if(d==null) return `<span class="dn">-</span>`; const b=bucketOf(d); return `<span class="${b.cls}">${d}</span>`; }
+
+// แถบ Aging แบบ 100% (ป้ายตัวเลขบนแถบเมื่อกว้างพอ)
+function agingBar(label, list){
+  const n=list.length, cnt=BUCKETS.map(b=>list.filter(r=>b.t(r.d)).length);
+  const segs = n ? cnt.map((v,i)=>v?`<div class="seg ${BUCKETS[i].k}" style="flex:${v};background:${BUCKETS[i].c}" title="${label} · ${BUCKETS[i].l} วัน (${BUCKETS[i].name}): ${fmt(v)} ตู้ (${pct(v,n)}%)">${pct(v,n)>=7?fmt(v):""}</div>`:"").join("") : `<div class="seg" style="flex:1;background:var(--chip)"></div>`;
+  return `<div class="arow"><div class="ah"><b>${label}</b><span>${fmt(n)} ตู้ · ≥100 วัน <b class="dr">${fmt(cnt[2]+cnt[3])}</b></span></div><div class="bar">${segs}</div></div>`;
+}
 
 function render(){
   const rows = DATA.filter(r=>pass(r));
@@ -244,45 +401,55 @@ function render(){
   setButtons(fSize, v=> v==="ALL"?S.sizes.size===0 : v==="REEFER"? (S.sizes.size===2&&REEFER.every(x=>S.sizes.has(x))) : S.sizes.has(v), cs);
   setButtons(fBucket, v=>v===S.bucket, cb);
 
-  // location select depends on area
   const locs = uniq(DATA.filter(r=>S.area==="ALL"||r.ar===S.area).map(r=>r.loc));
   fillSelect(fLoc, locs, "ทั้งหมด"); fLoc.value = locs.includes(S.loc)?S.loc:"ALL";
   rfWrap.style.display = showRfCol() ? "" : "none";
   document.body.classList.toggle("showrf", showRfCol());
 
-  // KPIs
   const n=k=>rows.filter(k).length;
+  tabLong.textContent = fmt(n(r=>r.d>=100));
+  tabList.textContent = fmt(rows.length);
+
+  // KPIs
+  const lastGateDay = GATE.length ? GATE.map(g=>g.gd).sort().pop() : "";
+  const lastGate = GATE.filter(g=>g.gd===lastGateDay);
   const kp=[
-    {l:"ตู้ทั้งหมด",v:rows.length,c:"var(--accent)"},
-    {l:"AV",v:n(r=>r.gp==="AV"),c:"var(--av)",set:()=>S.group="AV"},
-    {l:"DMG",v:n(r=>r.gp==="DMG"),c:"var(--dmg)",set:()=>S.group="DMG"},
-    ...BUCKETS.map(b=>({l:`${b.l} วัน`,v:n(r=>b.t(r.d)),c:b.c,set:()=>S.bucket=b.k,cls:b.k==="Y"?"dy":""})),
-    {l:"อายุเฉลี่ย (วัน)",v:rows.length?Math.round(rows.reduce((s,r)=>s+r.d,0)/rows.length):0,c:"var(--muted)"},
+    {l:"ตู้ในลานทั้งหมด",v:rows.length,c:"var(--accent)",s:`BKK ${fmt(n(r=>r.ar==="BKK"))} · LCH ${fmt(n(r=>r.ar==="LCH"))}`},
+    {l:"AV",v:n(r=>r.gp==="AV"),c:"var(--av)",set:()=>S.group=S.group==="AV"?"ALL":"AV",sel:S.group==="AV",s:`${pct(n(r=>r.gp==="AV"),rows.length)}% ของทั้งหมด`},
+    {l:"DMG",v:n(r=>r.gp==="DMG"),c:"var(--dmg)",set:()=>S.group=S.group==="DMG"?"ALL":"DMG",sel:S.group==="DMG",s:`${pct(n(r=>r.gp==="DMG"),rows.length)}% ของทั้งหมด`},
+    {l:"LONG STAYING ≥100 วัน",v:n(r=>r.d>=100),c:"var(--r)",cls:"dr",go:"long",s:"คลิกเพื่อดูรายการ"},
+    {l:"200+ วัน",v:n(r=>r.d>=200),c:"var(--y)",cls:"dy",set:()=>S.bucket=S.bucket==="Y"?"ALL":"Y",sel:S.bucket==="Y",s:"ต้องเร่งจัดการ"},
+    {l:"อายุเฉลี่ยในลาน",v:rows.length?Math.round(rows.reduce((s,r)=>s+r.d,0)/rows.length):0,c:"var(--muted)",s:"วัน"},
+    ...(lastGate.length?[{l:`ปล่อยออก ${dmy(lastGateDay)}`,v:lastGate.length,c:"var(--rel)",go:"gate",s:`ค้าง ≥100 วัน ${fmt(lastGate.filter(g=>g.d>=100).length)} ตู้`}]:[]),
   ];
-  kpis.innerHTML = kp.map((k,i)=>`<div class="card kpi bar-l ${k.set?"click":""}" style="--c:${k.c}" data-i="${i}"><div class="v">${k.cls?`<span class="${k.cls}">${fmt(k.v)}</span>`:fmt(k.v)}</div><div class="l">${k.l}</div></div>`).join("");
-  kpis.onclick=e=>{const c=e.target.closest(".kpi"); if(!c) return; const k=kp[+c.dataset.i]; if(k.set){k.set();render();}};
+  kpis.innerHTML = kp.map((k,i)=>`<div class="card kpi ${k.set||k.go?"click":""} ${k.sel?"sel":""}" style="--c:${k.c}" data-i="${i}"><div class="l">${k.l}</div><div class="v">${k.cls?`<span class="${k.cls}">${fmt(k.v)}</span>`:fmt(k.v)}</div>${k.s?`<div class="s">${k.s}</div>`:""}</div>`).join("");
+  kpis.onclick=e=>{const c=e.target.closest(".kpi"); if(!c) return; const k=kp[+c.dataset.i]; if(k.go){setTab(k.go);window.scrollTo({top:0});} else if(k.set){k.set();render();}};
+
+  // Aging chart
+  const areas=["BKK","LCH"].filter(a=>S.area==="ALL"||a===S.area);
+  agingChart.innerHTML = (areas.length>1?agingBar("รวมทุก Area",rows):"") + areas.map(a=>agingBar(a,rows.filter(r=>r.ar===a))).join("");
 
   // Area x Group
-  const areas=["BKK","LCH"].filter(a=>S.area==="ALL"||a===S.area);
   const cnt=(f)=>rows.filter(f).length;
-  let h=`<table><tr><th>Area</th>${GROUPS.map(g=>`<th class="num">${g}</th>`).join("")}<th class="num">รวม</th><th class="num">≥100 วัน</th><th class="num">≥200 วัน</th><th class="num">Max Days</th></tr>`;
+  let h=`<table><tr><th>Area</th>${GROUPS.map(g=>`<th class="num">${g}</th>`).join("")}<th class="num">รวม</th><th class="num">≥100</th><th class="num">200+</th><th class="num">Max</th></tr>`;
   areas.forEach(a=>{ const ar=rows.filter(r=>r.ar===a);
     h+=`<tr><td><b>${a}</b></td>${GROUPS.map(g=>`<td class="num">${fmt(ar.filter(r=>r.gp===g).length)}</td>`).join("")}<td class="num"><b>${fmt(ar.length)}</b></td><td class="num dr">${fmt(ar.filter(r=>r.d>=100).length)}</td><td class="num"><span class="dy">${fmt(ar.filter(r=>r.d>=200).length)}</span></td><td class="num">${ar.length?dayCell(Math.max(...ar.map(r=>r.d))):"-"}</td></tr>`;});
-  h+=`<tr class="tot"><td>รวม</td>${GROUPS.map(g=>`<td class="num">${fmt(cnt(r=>r.gp===g))}</td>`).join("")}<td class="num">${fmt(rows.length)}</td><td class="num dr">${fmt(cnt(r=>r.d>=100))}</td><td class="num"><span class="dy">${fmt(cnt(r=>r.d>=200))}</span></td><td class="num">${rows.length?dayCell(rows[0]?Math.max(...rows.map(r=>r.d)):0):"-"}</td></tr></table>`;
+  h+=`<tr class="tot"><td>รวม</td>${GROUPS.map(g=>`<td class="num">${fmt(cnt(r=>r.gp===g))}</td>`).join("")}<td class="num">${fmt(rows.length)}</td><td class="num dr">${fmt(cnt(r=>r.d>=100))}</td><td class="num"><span class="dy">${fmt(cnt(r=>r.d>=200))}</span></td><td class="num">${rows.length?dayCell(Math.max(...rows.map(r=>r.d))):"-"}</td></tr></table>`;
   tArea.innerHTML=h;
 
   // Location aging
-  const locRows = uniq(rows.map(r=>r.loc)).map(l=>{const lr=rows.filter(r=>r.loc===l); return {l, ar:lr[0].ar, n:lr.length, b:BUCKETS.map(b=>lr.filter(r=>b.t(r.d)).length), av:lr.filter(r=>r.gp==="AV").length, dmg:lr.filter(r=>r.gp==="DMG").length};})
+  const locRows = uniq(rows.map(r=>r.loc)).map(l=>{const lr=rows.filter(r=>r.loc===l); return {l, ar:lr[0].ar, n:lr.length, b:BUCKETS.map(b=>lr.filter(r=>b.t(r.d)).length), av:lr.filter(r=>r.gp==="AV").length, dmg:lr.filter(r=>r.gp==="DMG").length, mx:Math.max(...lr.map(r=>r.d))};})
     .sort((a,b)=>a.ar.localeCompare(b.ar)||b.n-a.n);
-  tLoc.innerHTML = `<table><tr><th>Area</th><th>Location</th><th class="num">AV</th><th class="num">DMG</th><th class="num">รวม</th><th class="num">≥100</th><th>Aging</th></tr>` +
-    locRows.map(x=>`<tr style="cursor:pointer" data-loc="${x.l}"><td>${x.ar}</td><td><b>${x.l}</b></td><td class="num">${fmt(x.av)}</td><td class="num">${fmt(x.dmg)}</td><td class="num">${fmt(x.n)}</td><td class="num dr">${fmt(x.b[2]+x.b[3])}</td><td><div class="stack" title="${BUCKETS.map((b,i)=>b.l+": "+x.b[i]).join(" | ")}">${x.b.map((v,i)=>`<span style="width:${v/x.n*100}%;background:${BUCKETS[i].c}"></span>`).join("")}</div></td></tr>`).join("") + `</table>`;
+  tLoc.innerHTML = locRows.length ? `<table><tr><th>Area</th><th>Location</th><th class="num">AV</th><th class="num">DMG</th><th class="num">รวม</th>${BUCKETS.map(b=>`<th class="num">${b.l}</th>`).join("")}<th class="num">Max</th><th>Aging</th></tr>` +
+    locRows.map(x=>`<tr style="cursor:pointer" data-loc="${x.l}"><td>${x.ar}</td><td><b>${x.l}</b>${S.loc===x.l?" ✓":""}</td><td class="num">${fmt(x.av)}</td><td class="num">${fmt(x.dmg)}</td><td class="num"><b>${fmt(x.n)}</b></td>${x.b.map((v,i)=>`<td class="num ${v?BUCKETS[i].cls:"muted"}">${v?fmt(v):"·"}</td>`).join("")}<td class="num">${dayCell(x.mx)}</td><td><div class="stack" title="${BUCKETS.map((b,i)=>b.l+": "+x.b[i]).join(" | ")}">${x.b.map((v,i)=>v?`<span style="width:${v/x.n*100}%;background:${BUCKETS[i].c}"></span>`:"").join("")}</div></td></tr>`).join("") + `</table>`
+    : `<div class="empty">ไม่มีข้อมูลในตัวกรองปัจจุบัน</div>`;
   tLoc.onclick=e=>{const tr=e.target.closest("tr[data-loc]"); if(!tr) return; S.loc = S.loc===tr.dataset.loc?"ALL":tr.dataset.loc; render();};
-
 
   // Alert list (>=100)
   const al = rows.filter(r=>r.d>=100).sort((a,b)=>b.d-a.d);
   alertAll = al;
-  alertCount.innerHTML = `${fmt(al.length)} ตู้ (≥200 วัน: <span class="dy">${fmt(al.filter(r=>r.d>=200).length)}</span>)`;
+  const relN = al.filter(r=>RELEASED.has(r.cn)).length;
+  alertCount.innerHTML = `${fmt(al.length)} ตู้ (≥200 วัน: <span class="dy">${fmt(al.filter(r=>r.d>=200).length)}</span>)${relN?` <span class="rel">ปล่อยออกแล้ว ${fmt(relN)}</span>`:""}`;
   renderAlert();
 
   renderMain(rows);
@@ -305,19 +472,19 @@ function renderAlert(){
   const al = alertBand==="ALL" ? searched : searched.filter(r=>bandOf(r.d)===alertBand);
   alertRows = al;
   tAlert.innerHTML = al.length ? (v?`<div class="muted" style="font-size:12px;margin-bottom:4px">พบ ${fmt(al.length)} ตู้ จากคำค้น "${esc(v)}"</div>`:"") + `<table><tr><th>#</th><th>Area</th><th>Location</th><th class="num">Days</th><th>Container No</th><th>Size/Type</th><th>Group</th><th>Move Code</th><th>EQ Date</th><th>Built Year</th><th class="rfcol">RF Brand</th></tr>` +
-    al.map((r,i)=>bandHead(al,i)+`<tr class="${r.d>=200?"rowy":"rowr"}"><td class="muted">${i+1}</td><td>${r.ar}</td><td>${r.loc}</td><td class="num">${dayCell(r.d)}</td><td class="mono"><b>${esc(r.cn)}</b></td><td>${r.st}</td><td><span class="gp ${r.gp}">${r.gp}</span></td><td>${r.mc}</td><td>${r.eq}</td><td>${r.by??""}</td><td class="rfcol">${esc(r.rf)}</td></tr>`).join("") + `</table>`
-    : `<div class="muted">${v?`ไม่พบเบอร์ตู้ "${esc(v)}" ในรายการ LONG STAYING`:"ไม่มีตู้ที่อยู่เกิน 100 วันในตัวกรองปัจจุบัน 🎉"}</div>`;
+    al.map((r,i)=>bandHead(al,i)+`<tr class="${r.d>=200?"rowy":"rowr"}"><td class="muted">${i+1}</td><td>${r.ar}</td><td>${r.loc}</td><td class="num">${dayCell(r.d)}</td><td class="mono"><b>${esc(r.cn)}</b>${relBadge(r.cn)}</td><td>${r.st}</td><td><span class="gp ${r.gp}">${r.gp}</span></td><td>${r.mc}</td><td>${r.eq}</td><td>${r.by??""}</td><td class="rfcol">${esc(r.rf)}</td></tr>`).join("") + `</table>`
+    : `<div class="empty">${v?`ไม่พบเบอร์ตู้ "${esc(v)}" ในรายการ LONG STAYING`:"ไม่มีตู้ที่อยู่เกิน 100 วันในตัวกรองปัจจุบัน 🎉"}</div>`;
 }
 
 // ===== แบ่งกลุ่มละ 50 วัน (0–49, 50–99, 100–149, …) =====
 const bandOf = d => Math.floor(d/50);
-function bandHead(list, i, pageStart=0){
+function bandHead(list, i, pageStart=0, cols=11){
   const b=bandOf(list[i].d);
   const cont = i>0 && bandOf(list[i-1].d)===b;
   if(cont && i!==pageStart) return "";
   const n=list.filter(r=>bandOf(r.d)===b).length;
   const lo=b*50, hi=lo+49, cls=bucketOf(lo).cls;
-  return `<tr class="bandrow"><td colspan="11"><span class="${cls}">${lo}–${hi} วัน</span> <span class="muted">· ${fmt(n)} ตู้${cont?" (ต่อ)":""}</span></td></tr>`;
+  return `<tr class="bandrow"><td colspan="${cols}"><span class="${cls}">${lo}–${hi} วัน</span> <span class="muted">· ${fmt(n)} ตู้${cont?" (ต่อ)":""}</span></td></tr>`;
 }
 // ปุ่มเลือกกลุ่ม 50 วัน (แสดงเฉพาะกลุ่มที่มีตู้) — คืนค่ากลุ่มที่เลือก (ALL ถ้ากลุ่มเดิมไม่มีตู้แล้ว)
 function bandButtons(el, list, sel){
@@ -325,7 +492,7 @@ function bandButtons(el, list, sel){
   const bands=Object.keys(cnt).map(Number).sort((a,b)=>b-a);
   if(sel!=="ALL" && !cnt[sel]) sel="ALL";
   el.innerHTML = `<button class="btn ${sel==="ALL"?"on":""}" data-v="ALL">ทั้งหมด<span class="n">${fmt(list.length)}</span></button>` +
-    bands.map(b=>`<button class="btn ${sel===b?"on":""}" data-v="${b}"><span class="${sel===b?"":bucketOf(b*50).cls}">${b*50}–${b*50+49} วัน</span><span class="n">${fmt(cnt[b])}</span></button>`).join("");
+    bands.map(b=>`<button class="btn ${sel===b?"on":""}" data-v="${b}"><span class="${bucketOf(b*50).cls}">${b*50}–${b*50+49} วัน</span><span class="n">${fmt(cnt[b])}</span></button>`).join("");
   return sel;
 }
 let mainBand="ALL";
@@ -341,48 +508,125 @@ function renderMain(rows){
   const pages=Math.max(1,Math.ceil(lastRows.length/PAGE)); if(S.page>=pages) S.page=0;
   const pr=lastRows.slice(S.page*PAGE,(S.page+1)*PAGE);
   tMain.innerHTML = `<tr><th>#</th>${COLS.map(([c,l,cls])=>`<th class="sort ${cls||""}" data-k="${c}">${l}${c===k?(dir<0?" ▼":" ▲"):""}</th>`).join("")}</tr>` +
-    pr.map((r,i)=>(k==="d"?bandHead(lastRows,S.page*PAGE+i,S.page*PAGE):"")+`<tr class="${r.d>=200?"rowy":""}"><td class="muted">${S.page*PAGE+i+1}</td><td>${r.ar}</td><td>${r.loc}</td><td class="num">${dayCell(r.d)}</td><td class="mono"><b>${esc(r.cn)}</b></td><td>${r.st}</td><td><span class="gp ${r.gp}">${r.gp}</span></td><td>${r.mc}</td><td>${r.eq}</td><td class="num">${r.by??""}</td><td class="rfcol">${esc(r.rf)}</td></tr>`).join("");
+    pr.map((r,i)=>(k==="d"?bandHead(lastRows,S.page*PAGE+i,S.page*PAGE):"")+`<tr class="${r.d>=200?"rowy":""}"><td class="muted">${S.page*PAGE+i+1}</td><td>${r.ar}</td><td>${r.loc}</td><td class="num">${dayCell(r.d)}</td><td class="mono"><b>${esc(r.cn)}</b>${relBadge(r.cn)}</td><td>${r.st}</td><td><span class="gp ${r.gp}">${r.gp}</span></td><td>${r.mc}</td><td>${r.eq}</td><td class="num">${r.by??""}</td><td class="rfcol">${esc(r.rf)}</td></tr>`).join("");
   pager.innerHTML = `<span class="muted">แสดง ${fmt(lastRows.length?S.page*PAGE+1:0)}–${fmt(Math.min((S.page+1)*PAGE,lastRows.length))} จาก ${fmt(lastRows.length)} ตู้</span>
     <button class="btn" data-p="prev" ${S.page===0?"disabled":""}>‹ ก่อนหน้า</button><span>${S.page+1} / ${pages}</span><button class="btn" data-p="next" ${S.page>=pages-1?"disabled":""}>ถัดไป ›</button>`;
 }
 tMain.onclick=e=>{const th=e.target.closest("th[data-k]"); if(!th) return; const k=th.dataset.k; if(S.sortKey===k) S.sortDir*=-1; else {S.sortKey=k;S.sortDir=k==="d"||k==="by"?-1:1;} renderMain(DATA.filter(r=>pass(r)));};
 pager.onclick=e=>{const b=e.target.closest("button[data-p]"); if(!b) return; S.page+=b.dataset.p==="next"?1:-1; renderMain(DATA.filter(r=>pass(r))); mainWrap.scrollIntoView({block:"start"});};
 
-// ===== Export Excel รายการแจ้งเตือน LONG STAYING (ตามตัวกรองปัจจุบัน) =====
+// ===== ตู้ปล่อยออก (Gate Out: OEP / OEV / OEW) =====
+const GDATES = uniq(GATE.map(g=>g.gd)).reverse();
+const G = { date: GDATES[0]||"ALL", move:"ALL", area:"ALL", bucket:"ALL", q:"" };
+let gRows=[];
+function gPass(g, ex){
+  if(ex!=="date" && G.date!=="ALL" && g.gd!==G.date) return false;
+  if(ex!=="move" && G.move!=="ALL" && g.mv!==G.move) return false;
+  if(ex!=="area" && G.area!=="ALL" && g.ar!==G.area) return false;
+  return true;
+}
+btnGroup(gDate, [["ALL","ทุกวัน"],...GDATES.map(d=>[d,dmy(d)+"/"+d.slice(0,4)])], v=>{G.date=v;renderGate();});
+btnGroup(gMove, [["ALL","ทั้งหมด"],["OEP","OEP"],["OEV","OEV"],["OEW","OEW"]], v=>{G.move=v;renderGate();});
+btnGroup(gArea, [["ALL","ทั้งหมด"],["BKK","BKK"],["LCH","LCH"]], v=>{G.area=v;renderGate();});
+btnGroup(gBucketBtns, [["ALL","ทั้งหมด"],...BUCKETS.map(b=>[b.k,`<span class="${b.cls}">${b.l} วัน</span>`]),["LONG","≥100 วัน"]], v=>{G.bucket=v;renderGateTable();});
+gQ.oninput=()=>{G.q=gQ.value.trim().toUpperCase();renderGateTable();};
+const gBucketOk = g => G.bucket==="ALL" || (g.d!=null && (G.bucket==="LONG" ? g.d>=100 : bucketOf(g.d).k===G.bucket));
 
+function renderGate(){
+  tabGate.textContent = fmt(GATE.filter(g=>g.gd===GDATES[0]).length);
+  if(!GATE.length){ gKpis.innerHTML=`<div class="card empty" style="grid-column:1/-1">ยังไม่มีข้อมูลไฟล์ GATE OUT</div>`; gBuckets.innerHTML=gDaily.innerHTML=gTable.innerHTML=""; return; }
+  const rows = GATE.filter(g=>gPass(g));
+  setButtons(gDate, v=>v===G.date, Object.assign(countBy(GATE.filter(g=>gPass(g,"date")),g=>g.gd),{ALL:GATE.filter(g=>gPass(g,"date")).length}));
+  const mvRows=GATE.filter(g=>gPass(g,"move")); setButtons(gMove, v=>v===G.move, Object.assign({OEP:0,OEV:0,OEW:0},countBy(mvRows,g=>g.mv),{ALL:mvRows.length}));
+  const arRows=GATE.filter(g=>gPass(g,"area")); setButtons(gArea, v=>v===G.area, Object.assign({BKK:0,LCH:0},countBy(arRows,g=>g.ar),{ALL:arRows.length}));
+  gRows = rows;
+  const known = rows.filter(g=>g.d!=null);
+  const avg = known.length ? (known.reduce((s,g)=>s+g.d,0)/known.length).toFixed(1) : "-";
+  const top = known[0] ? known.reduce((a,b)=>b.d>a.d?b:a) : null;
+  const long = known.filter(g=>g.d>=100).length;
+  const kp=[
+    {l:G.date==="ALL"?"ปล่อยออกทั้งหมด":`ปล่อยออก ${dmy(G.date)}`,v:fmt(rows.length),c:"var(--rel)",s:["OEP","OEV","OEW"].map(m=>`${m} ${fmt(rows.filter(g=>g.mv===m).length)}`).join(" · ")},
+    {l:"วันค้างเฉลี่ยก่อนปล่อย",v:avg,c:"var(--accent)",s:"วัน"},
+    {l:"ค้างนานที่สุด",v:top?top.d:"-",c:top?bucketOf(top.d).c:"var(--line)",s:top?`${top.cn} · ${top.st}`:"",cls:top?bucketOf(top.d).cls:""},
+    {l:"ค้าง ≥100 วัน ที่ปล่อยออก",v:fmt(long),c:"var(--r)",cls:"dr",s:`${pct(long,known.length)}% ของตู้ที่ปล่อย`},
+    {l:"ค้าง 31–99 วัน",v:fmt(known.filter(g=>g.d>=31&&g.d<=99).length),c:"var(--o)",cls:"do",s:`${pct(known.filter(g=>g.d>=31&&g.d<=99).length,known.length)}%`},
+    {l:"ก่อนปล่อยเป็น DMG",v:fmt(rows.filter(g=>g.pgp==="DMG").length),c:"var(--dmg)",s:`AV ${fmt(rows.filter(g=>g.pgp==="AV").length)} ตู้`},
+  ];
+  gKpis.innerHTML = kp.map(k=>`<div class="card kpi" style="--c:${k.c}"><div class="l">${k.l}</div><div class="v">${k.cls?`<span class="${k.cls}">${k.v}</span>`:k.v}</div>${k.s?`<div class="s">${esc(k.s)}</div>`:""}</div>`).join("");
+
+  // แท่งแนวนอน: กลุ่มวันค้าง
+  const bc = BUCKETS.map(b=>known.filter(g=>b.t(g.d)).length), mx=Math.max(1,...bc);
+  gBuckets.innerHTML = BUCKETS.map((b,i)=>`<div class="hb" title="${b.l} วัน: ${fmt(bc[i])} ตู้ (${pct(bc[i],known.length)}%)"><span class="${b.cls}">${b.l} วัน</span><div class="track"><div class="fill" style="width:${bc[i]/mx*100}%;background:${b.c}"></div></div><span class="val"><b>${fmt(bc[i])}</b> ตู้ · ${pct(bc[i],known.length)}%</span></div>`).join("") +
+    (rows.length-known.length?`<div class="note">ไม่พบวันเข้าลาน ${fmt(rows.length-known.length)} ตู้ (ไม่มีในไฟล์ STAYING ที่เก็บไว้)</div>`:"");
+
+  // สรุปรายวัน (ทุกวันตามตัวกรอง Move/Area)
+  const dayRows = GATE.filter(g=>gPass(g,"date"));
+  gDaily.innerHTML = `<table><tr><th>วันที่ปล่อย</th><th class="num">ปล่อยออก</th>${BUCKETS.map(b=>`<th class="num"><span class="${b.cls}">${b.l}</span></th>`).join("")}<th class="num">เฉลี่ย (วัน)</th><th class="num">Max</th></tr>` +
+    GDATES.map(d=>{const dr=dayRows.filter(g=>g.gd===d), dk=dr.filter(g=>g.d!=null);
+      return `<tr style="cursor:pointer${G.date===d?";font-weight:700":""}" data-d="${d}"><td>${d}${G.date===d?" ✓":""}</td><td class="num"><b>${fmt(dr.length)}</b></td>${BUCKETS.map(b=>{const v=dk.filter(g=>b.t(g.d)).length;return `<td class="num ${v?b.cls:"muted"}">${v?fmt(v):"·"}</td>`;}).join("")}<td class="num">${dk.length?(dk.reduce((s,g)=>s+g.d,0)/dk.length).toFixed(1):"-"}</td><td class="num">${dk.length?dayCell(Math.max(...dk.map(g=>g.d))):"-"}</td></tr>`;}).join("") + `</table>`;
+  gDaily.onclick=e=>{const tr=e.target.closest("tr[data-d]"); if(!tr) return; G.date=G.date===tr.dataset.d?"ALL":tr.dataset.d; renderGate();};
+  gDailyTitle.textContent = `สรุปรายวัน (${GDATES.length} วัน)`;
+
+  renderGateTable();
+}
+let gTableRows=[];
+function renderGateTable(){
+  const cb=countBy(gRows.filter(g=>g.d!=null),g=>bucketOf(g.d).k); cb.ALL=gRows.length; cb.LONG=gRows.filter(g=>g.d>=100).length;
+  setButtons(gBucketBtns, v=>v===G.bucket, Object.assign({G:0,O:0,R:0,Y:0},cb));
+  const list = gRows.filter(g=>gBucketOk(g) && (!G.q || g.cn.toUpperCase().includes(G.q)))
+    .slice().sort((a,b)=>(b.d??-1)-(a.d??-1) || (b.gd+b.gt).localeCompare(a.gd+a.gt));
+  gTableRows = list;
+  const showDate = G.date==="ALL";
+  gTable.innerHTML = list.length ? `<table><tr><th>#</th>${showDate?"<th>Gate Date</th>":""}<th>Time</th><th>Move</th><th>Area</th><th>Location</th><th class="num">วันค้าง</th><th>Container No</th><th>Size/Type</th><th>EQ Date (เข้าลาน)</th><th>Move ก่อนปล่อย</th><th>Built Year</th><th>POD</th><th>Voyage</th></tr>` +
+    list.map((g,i)=>(g.d!=null?bandHead(list,i,0,showDate?14:13):"")+`<tr class="${g.d>=200?"rowy":g.d>=100?"rowr":""}"><td class="muted">${i+1}</td>${showDate?`<td>${g.gd}</td>`:""}<td>${g.gt}</td><td><span class="mv">${g.mv}</span></td><td>${g.ar}</td><td>${g.loc}</td><td class="num">${dayCell(g.d)}</td><td class="mono"><b>${esc(g.cn)}</b></td><td>${g.st}</td><td>${g.eq||'<span class="muted">ไม่พบ</span>'}</td><td>${g.pmc?`${g.pmc} <span class="gp ${g.pgp}">${g.pgp}</span>`:""}</td><td>${g.by??""}</td><td>${esc(g.pod)}</td><td>${esc(g.voy)}</td></tr>`).join("") + `</table>`
+    : `<div class="empty">ไม่มีตู้ปล่อยออกในตัวกรองนี้</div>`;
+}
+
+// ===== Export Excel =====
 function loadExcelJS(){
   if(window.ExcelJS) return Promise.resolve();
   return new Promise((ok,fail)=>{const s=document.createElement("script");
     s.src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"; s.onload=ok; s.onerror=fail; document.head.appendChild(s);});
 }
-xlsxBtn.onclick=async()=>{
-  if(!alertRows.length){ alert("ไม่มีตู้ LONG STAYING ในตัวกรองปัจจุบัน"); return; }
-  const label=xlsxBtn.textContent; xlsxBtn.textContent="กำลังสร้างไฟล์…"; xlsxBtn.disabled=true;
+const XL_FILL = {G:"FFDCFCE7",O:"FFFFEDD5",R:"FFFEE2E2",Y:"FFFFF59D"}, XL_FONT = {G:"FF15803D",O:"FFC2410C",R:"FFB91C1C",Y:"FFB91C1C"};
+async function exportXlsx(btn, sheetName, columns, rows, fileName){
+  if(!rows.length){ alert("ไม่มีข้อมูลในตัวกรองปัจจุบัน"); return; }
+  const label=btn.textContent; btn.textContent="กำลังสร้างไฟล์…"; btn.disabled=true;
   try{
     await loadExcelJS();
-    const wb=new ExcelJS.Workbook(); const ws=wb.addWorksheet("LONG STAYING",{views:[{state:"frozen",ySplit:1}]});
-    ws.columns=[
-      {header:"#",key:"i",width:6},{header:"Area",key:"ar",width:8},{header:"Location",key:"loc",width:11},
-      {header:"Days",key:"d",width:8},{header:"Aging",key:"ag",width:10},{header:"Container No",key:"cn",width:16},
-      {header:"Size/Type",key:"st",width:10},{header:"Group",key:"gp",width:8},{header:"Move Code",key:"mc",width:11},
-      {header:"EQ Date",key:"eq",width:12},{header:"Built Year",key:"by",width:11},{header:"RF Brand",key:"rf",width:13}];
-    alertRows.forEach((r,i)=>ws.addRow({i:i+1,ar:r.ar,loc:r.loc,d:r.d,ag:bucketOf(r.d).l+" วัน",cn:r.cn,st:r.st,gp:r.gp,mc:r.mc,eq:r.eq,by:r.by??"",rf:r.rf}));
+    const wb=new ExcelJS.Workbook(); const ws=wb.addWorksheet(sheetName,{views:[{state:"frozen",ySplit:1}]});
+    ws.columns=columns;
+    rows.forEach(r=>ws.addRow(r));
     const thin={style:"thin",color:{argb:"FFBFC5CE"}};
     ws.eachRow((row,n)=>{
       row.eachCell({includeEmpty:true},c=>{c.border={top:thin,left:thin,bottom:thin,right:thin};});
       if(n===1){ row.eachCell(c=>{c.font={bold:true,color:{argb:"FFFFFFFF"}};c.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FF1F5FBF"}};c.alignment={horizontal:"center"};}); return; }
-      const d=row.getCell("d").value, y=d>=200;
-      row.eachCell({includeEmpty:true},c=>{c.fill={type:"pattern",pattern:"solid",fgColor:{argb:y?"FFFFF59D":"FFFEE2E2"}};});
-      row.getCell("d").font={bold:true,color:{argb:"FFB91C1C"}};
-      row.getCell("ag").font={bold:y,color:{argb:"FFB91C1C"}};
+      const d=row.getCell("d").value; if(typeof d!=="number") return;
+      const k=bucketOf(d).k;
+      row.eachCell({includeEmpty:true},c=>{c.fill={type:"pattern",pattern:"solid",fgColor:{argb:XL_FILL[k]}};});
+      row.getCell("d").font={bold:true,color:{argb:XL_FONT[k]}};
     });
-    ws.autoFilter={from:"A1",to:"L1"};
+    ws.autoFilter={from:{row:1,column:1},to:{row:1,column:columns.length}};
     const buf=await wb.xlsx.writeBuffer();
     const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
-    a.download=`LONG_STAYING_${META.lastEq}.xlsx`; a.click(); URL.revokeObjectURL(a.href);
+    a.download=fileName; a.click(); URL.revokeObjectURL(a.href);
   }catch(e){ alert("สร้างไฟล์ Excel ไม่สำเร็จ (ต้องต่ออินเทอร์เน็ตเพื่อโหลดตัวสร้างไฟล์)"); }
-  finally{ xlsxBtn.textContent=label; xlsxBtn.disabled=false; }
-};
+  finally{ btn.textContent=label; btn.disabled=false; }
+}
+xlsxBtn.onclick=()=>exportXlsx(xlsxBtn,"LONG STAYING",[
+    {header:"#",key:"i",width:6},{header:"Area",key:"ar",width:8},{header:"Location",key:"loc",width:11},
+    {header:"Days",key:"d",width:8},{header:"Aging",key:"ag",width:10},{header:"Container No",key:"cn",width:16},
+    {header:"Size/Type",key:"st",width:10},{header:"Group",key:"gp",width:8},{header:"Move Code",key:"mc",width:11},
+    {header:"EQ Date",key:"eq",width:12},{header:"Built Year",key:"by",width:11},{header:"RF Brand",key:"rf",width:13},{header:"ปล่อยออก",key:"rel",width:18}],
+  alertRows.map((r,i)=>{const g=RELEASED.get(r.cn); return {i:i+1,ar:r.ar,loc:r.loc,d:r.d,ag:bucketOf(r.d).l+" วัน",cn:r.cn,st:r.st,gp:r.gp,mc:r.mc,eq:r.eq,by:r.by??"",rf:r.rf,rel:g?`${g.mv} ${g.gd}`:""};}),
+  `LONG_STAYING_${META.lastEq}.xlsx`);
+gXlsx.onclick=()=>exportXlsx(gXlsx,"GATE OUT",[
+    {header:"#",key:"i",width:6},{header:"Gate Date",key:"gd",width:12},{header:"Time",key:"gt",width:7},{header:"Move",key:"mv",width:7},
+    {header:"Area",key:"ar",width:7},{header:"Location",key:"loc",width:10},{header:"วันค้าง",key:"d",width:9},{header:"Aging",key:"ag",width:10},
+    {header:"Container No",key:"cn",width:16},{header:"Size/Type",key:"st",width:10},{header:"EQ Date (เข้าลาน)",key:"eq",width:16},
+    {header:"Move ก่อนปล่อย",key:"pmc",width:14},{header:"Group",key:"pgp",width:8},{header:"Built Year",key:"by",width:10},{header:"POD",key:"pod",width:9},{header:"Voyage",key:"voy",width:9}],
+  gTableRows.map((g,i)=>({i:i+1,gd:g.gd,gt:g.gt,mv:g.mv,ar:g.ar,loc:g.loc,d:g.d??"",ag:g.d!=null?bucketOf(g.d).l+" วัน":"",cn:g.cn,st:g.st,eq:g.eq,pmc:g.pmc,pgp:g.pgp,by:g.by??"",pod:g.pod,voy:g.voy})),
+  `GATE_OUT_${G.date==="ALL"?"ALL":G.date}.xlsx`);
 
 csvBtn.onclick=()=>{
   const head=["Area","Location","Days","Aging","Container No","Size/Type","Group","Move Code","EQ Date","Built Year","RF Brand"];
@@ -391,7 +635,7 @@ csvBtn.onclick=()=>{
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`EQ_STAYING_filtered_${META.lastEq}.csv`; a.click(); URL.revokeObjectURL(a.href);
 };
 
-// ตัวกรองล่วงหน้าจากลิงก์ เช่น index.html?area=BKK&group=AV&bucket=LONG&size=REEFER
+// ตัวกรองล่วงหน้าจากลิงก์ เช่น index.html?area=BKK&group=AV&bucket=LONG&size=REEFER  และแท็บ #long / #gate / #list
 (()=>{ const p=new URLSearchParams(location.search);
   if(["BKK","LCH"].includes(p.get("area"))) S.area=p.get("area");
   if(GROUPS.includes(p.get("group"))) S.group=p.get("group");
@@ -400,6 +644,8 @@ csvBtn.onclick=()=>{
 })();
 
 render();
+renderGate();
+setTab(["long","gate","list"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "overview");
 </script>
 </body>
 </html>
