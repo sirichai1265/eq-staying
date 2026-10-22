@@ -204,7 +204,7 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
     </div>
     <div class="card">
       <h2>Aging ตาม Location</h2>
-      <p class="hint">คลิกแถวเพื่อกรองเฉพาะ Location นั้น</p>
+      <p class="hint">เฉพาะลาน BKK01+BKK04, BKK02, BKK25, BKK27, LCH54, LCH55, LCH27, LCH28, LCHY5 · คลิกแถวเพื่อกรองเฉพาะลานนั้น</p>
       <div class="scroll" id="tLoc"></div>
     </div>
   </section>
@@ -287,6 +287,12 @@ const BUCKETS = [
   {k:"Y",l:"200+",name:"เร่งจัดการ",cls:"dy",c:"var(--y)",t:d=>d>=200},
 ];
 const bucketOf = d => BUCKETS.find(b=>b.t(d));
+// ลานที่แสดงใน "Aging ตาม Location" และ "รายการตู้" (เรียงตามนี้)
+const YARDS = [
+  {label:"BKK01+BKK04",locs:["BKK01","BKK04"]},{label:"BKK02",locs:["BKK02"]},{label:"BKK25",locs:["BKK25"]},{label:"BKK27",locs:["BKK27"]},
+  {label:"LCH54",locs:["LCH54"]},{label:"LCH55",locs:["LCH55"]},{label:"LCH27",locs:["LCH27"]},{label:"LCH28",locs:["LCH28"]},{label:"LCHY5",locs:["LCHY5"]},
+];
+const YARD_LOCS = new Set(YARDS.flatMap(y=>y.locs));
 const GROUPS = ["AV","DMG","OTHER"];
 const fmt = n => n.toLocaleString("en-US");
 const pct = (a,b) => b ? Math.round(a/b*100) : 0;
@@ -363,7 +369,7 @@ function pass(r, exclude){
   if(exclude!=="size" && S.sizes.size && !S.sizes.has(r.st)) return false;
   if(exclude!=="bucket" && S.bucket!=="ALL"){ if(S.bucket==="LONG"? r.d<100 : bucketOf(r.d).k!==S.bucket) return false; }
   if(r.by && (r.by<S.byFrom || r.by>S.byTo)) return false;
-  if(S.loc!=="ALL" && r.loc!==S.loc) return false;
+  if(S.loc!=="ALL" && !S.loc.split(",").includes(r.loc)) return false;
   if(S.mc!=="ALL" && r.mc!==S.mc) return false;
   if(S.rf!=="ALL" && (S.rf==="(ไม่ระบุ)" ? r.rf!=="" || !REEFER.includes(r.st) : r.rf!==S.rf)) return false;
   if(S.q && !r.cn.toUpperCase().includes(S.q)) return false;
@@ -401,14 +407,17 @@ function render(){
   setButtons(fSize, v=> v==="ALL"?S.sizes.size===0 : v==="REEFER"? (S.sizes.size===2&&REEFER.every(x=>S.sizes.has(x))) : S.sizes.has(v), cs);
   setButtons(fBucket, v=>v===S.bucket, cb);
 
-  const locs = uniq(DATA.filter(r=>S.area==="ALL"||r.ar===S.area).map(r=>r.loc));
-  fillSelect(fLoc, locs, "ทั้งหมด"); fLoc.value = locs.includes(S.loc)?S.loc:"ALL";
+  const present = new Set(DATA.filter(r=>S.area==="ALL"||r.ar===S.area).map(r=>r.loc));
+  const locOpts = YARDS.filter(y=>y.locs.some(l=>present.has(l))).map(y=>[y.locs.join(","),y.label])
+    .concat([...present].filter(l=>!YARD_LOCS.has(l)).sort().map(l=>[l,l+" (ไม่แสดงในรายการตู้)"]));
+  fLoc.innerHTML = `<option value="ALL">ทั้งหมด</option>` + locOpts.map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("");
+  fLoc.value = locOpts.some(o=>o[0]===S.loc)?S.loc:"ALL";
   rfWrap.style.display = showRfCol() ? "" : "none";
   document.body.classList.toggle("showrf", showRfCol());
 
   const n=k=>rows.filter(k).length;
   tabLong.textContent = fmt(n(r=>r.d>=100));
-  tabList.textContent = fmt(rows.length);
+  tabList.textContent = fmt(n(r=>YARD_LOCS.has(r.loc)));
 
   // KPIs
   const lastGateDay = GATE.length ? GATE.map(g=>g.gd).sort().pop() : "";
@@ -437,11 +446,10 @@ function render(){
   h+=`<tr class="tot"><td>รวม</td>${GROUPS.map(g=>`<td class="num">${fmt(cnt(r=>r.gp===g))}</td>`).join("")}<td class="num">${fmt(rows.length)}</td><td class="num dr">${fmt(cnt(r=>r.d>=100))}</td><td class="num"><span class="dy">${fmt(cnt(r=>r.d>=200))}</span></td><td class="num">${rows.length?dayCell(Math.max(...rows.map(r=>r.d))):"-"}</td></tr></table>`;
   tArea.innerHTML=h;
 
-  // Location aging
-  const locRows = uniq(rows.map(r=>r.loc)).map(l=>{const lr=rows.filter(r=>r.loc===l); return {l, ar:lr[0].ar, n:lr.length, b:BUCKETS.map(b=>lr.filter(r=>b.t(r.d)).length), av:lr.filter(r=>r.gp==="AV").length, dmg:lr.filter(r=>r.gp==="DMG").length, mx:Math.max(...lr.map(r=>r.d))};})
-    .sort((a,b)=>a.ar.localeCompare(b.ar)||b.n-a.n);
+  // Location aging (เฉพาะลานหลัก ตามลำดับที่กำหนด — BKK01+BKK04 รวมเป็นแถวเดียว)
+  const locRows = YARDS.map(y=>{const lr=rows.filter(r=>y.locs.includes(r.loc)); return lr.length?{l:y.label, key:y.locs.join(","), ar:lr[0].ar, n:lr.length, b:BUCKETS.map(b=>lr.filter(r=>b.t(r.d)).length), av:lr.filter(r=>r.gp==="AV").length, dmg:lr.filter(r=>r.gp==="DMG").length, mx:Math.max(...lr.map(r=>r.d))}:null;}).filter(Boolean);
   tLoc.innerHTML = locRows.length ? `<table><tr><th>Area</th><th>Location</th><th class="num">AV</th><th class="num">DMG</th><th class="num">รวม</th>${BUCKETS.map(b=>`<th class="num">${b.l}</th>`).join("")}<th class="num">Max</th><th>Aging</th></tr>` +
-    locRows.map(x=>`<tr style="cursor:pointer" data-loc="${x.l}"><td>${x.ar}</td><td><b>${x.l}</b>${S.loc===x.l?" ✓":""}</td><td class="num">${fmt(x.av)}</td><td class="num">${fmt(x.dmg)}</td><td class="num"><b>${fmt(x.n)}</b></td>${x.b.map((v,i)=>`<td class="num ${v?BUCKETS[i].cls:"muted"}">${v?fmt(v):"·"}</td>`).join("")}<td class="num">${dayCell(x.mx)}</td><td><div class="stack" title="${BUCKETS.map((b,i)=>b.l+": "+x.b[i]).join(" | ")}">${x.b.map((v,i)=>v?`<span style="width:${v/x.n*100}%;background:${BUCKETS[i].c}"></span>`:"").join("")}</div></td></tr>`).join("") + `</table>`
+    locRows.map(x=>`<tr style="cursor:pointer" data-loc="${x.key}"><td>${x.ar}</td><td><b>${x.l}</b>${S.loc===x.key?" ✓":""}</td><td class="num">${fmt(x.av)}</td><td class="num">${fmt(x.dmg)}</td><td class="num"><b>${fmt(x.n)}</b></td>${x.b.map((v,i)=>`<td class="num ${v?BUCKETS[i].cls:"muted"}">${v?fmt(v):"·"}</td>`).join("")}<td class="num">${dayCell(x.mx)}</td><td><div class="stack" title="${BUCKETS.map((b,i)=>b.l+": "+x.b[i]).join(" | ")}">${x.b.map((v,i)=>v?`<span style="width:${v/x.n*100}%;background:${BUCKETS[i].c}"></span>`:"").join("")}</div></td></tr>`).join("") + `</table>`
     : `<div class="empty">ไม่มีข้อมูลในตัวกรองปัจจุบัน</div>`;
   tLoc.onclick=e=>{const tr=e.target.closest("tr[data-loc]"); if(!tr) return; S.loc = S.loc===tr.dataset.loc?"ALL":tr.dataset.loc; render();};
 
@@ -502,6 +510,7 @@ const COLS=[["ar","Area"],["loc","Location"],["d","Days","num"],["cn","Container
 let lastRows=[];
 function renderMain(rows){
   const k=S.sortKey, dir=S.sortDir;
+  rows = rows.filter(r=>YARD_LOCS.has(r.loc));   // เฉพาะลานหลัก
   mainBand = bandButtons(mainBands, rows, mainBand);
   if(mainBand!=="ALL") rows = rows.filter(r=>bandOf(r.d)===mainBand);
   lastRows = rows.slice().sort((a,b)=>{const x=a[k]??"",y=b[k]??""; return (x>y?1:x<y?-1:0)*dir || b.d-a.d;});
