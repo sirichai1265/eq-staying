@@ -213,7 +213,7 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
   <section class="page" id="pg-long">
     <div class="card alert">
       <div class="tablebar">
-        <h2 style="margin:0">⚠ แจ้งเตือน LONG STAYING (≥ 100 วัน) — <span id="alertCount"></span></h2>
+        <h2 style="margin:0">⚠ แจ้งเตือน LONG STAYING (≥ 100 วัน · ไม่รวม OEV/OEP/OEW) — <span id="alertCount"></span></h2>
         <div class="frow">
           <input type="search" id="alertQ" placeholder="ค้นหาเบอร์ตู้ LONG STAYING">
           <button class="btn" id="alertToggle">▸ แสดงรายการ</button>
@@ -262,7 +262,7 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
   <section class="page" id="pg-list">
     <div class="card">
       <div class="tablebar">
-        <h2 style="margin:0">รายการตู้ในลาน (เรียงตาม Days มาก → น้อย)</h2>
+        <h2 style="margin:0">รายการตู้ในลาน (ไม่รวม OEV/OEP/OEW · เรียงตาม Days มาก → น้อย)</h2>
         <div class="frow">
           <input type="search" id="q" placeholder="ค้นหา Container No">
           <button class="btn" id="csvBtn">⬇ Export CSV</button>
@@ -293,6 +293,10 @@ const YARDS = [
   {label:"LCH54",locs:["LCH54"]},{label:"LCH55",locs:["LCH55"]},{label:"LCH27",locs:["LCH27"]},{label:"LCH28",locs:["LCH28"]},{label:"LCHY5",locs:["LCHY5"]},
 ];
 const YARD_LOCS = new Set(YARDS.flatMap(y=>y.locs));
+// ตู้ที่จัดปล่อยแล้ว (OEV / OEP / OEW) ไม่นับใน LONG STAYING และรายการตู้
+const OE_MOVES = new Set(["OEV","OEP","OEW"]);
+const isLong = r => r.d>=100 && !OE_MOVES.has(r.mc);
+const inList = r => YARD_LOCS.has(r.loc) && !OE_MOVES.has(r.mc);
 const GROUPS = ["AV","DMG","OTHER"];
 const fmt = n => n.toLocaleString("en-US");
 const pct = (a,b) => b ? Math.round(a/b*100) : 0;
@@ -416,8 +420,8 @@ function render(){
   document.body.classList.toggle("showrf", showRfCol());
 
   const n=k=>rows.filter(k).length;
-  tabLong.textContent = fmt(n(r=>r.d>=100));
-  tabList.textContent = fmt(n(r=>YARD_LOCS.has(r.loc)));
+  tabLong.textContent = fmt(n(isLong));
+  tabList.textContent = fmt(n(inList));
 
   // KPIs
   const lastGateDay = GATE.length ? GATE.map(g=>g.gd).sort().pop() : "";
@@ -426,7 +430,7 @@ function render(){
     {l:"ตู้ในลานทั้งหมด",v:rows.length,c:"var(--accent)",s:`BKK ${fmt(n(r=>r.ar==="BKK"))} · LCH ${fmt(n(r=>r.ar==="LCH"))}`},
     {l:"AV",v:n(r=>r.gp==="AV"),c:"var(--av)",set:()=>S.group=S.group==="AV"?"ALL":"AV",sel:S.group==="AV",s:`${pct(n(r=>r.gp==="AV"),rows.length)}% ของทั้งหมด`},
     {l:"DMG",v:n(r=>r.gp==="DMG"),c:"var(--dmg)",set:()=>S.group=S.group==="DMG"?"ALL":"DMG",sel:S.group==="DMG",s:`${pct(n(r=>r.gp==="DMG"),rows.length)}% ของทั้งหมด`},
-    {l:"LONG STAYING ≥100 วัน",v:n(r=>r.d>=100),c:"var(--r)",cls:"dr",go:"long",s:"คลิกเพื่อดูรายการ"},
+    {l:"LONG STAYING ≥100 วัน",v:n(isLong),c:"var(--r)",cls:"dr",go:"long",s:"คลิกเพื่อดูรายการ"},
     {l:"200+ วัน",v:n(r=>r.d>=200),c:"var(--y)",cls:"dy",set:()=>S.bucket=S.bucket==="Y"?"ALL":"Y",sel:S.bucket==="Y",s:"ต้องเร่งจัดการ"},
     {l:"อายุเฉลี่ยในลาน",v:rows.length?Math.round(rows.reduce((s,r)=>s+r.d,0)/rows.length):0,c:"var(--muted)",s:"วัน"},
     ...(lastGate.length?[{l:`ปล่อยออก ${dmy(lastGateDay)}`,v:lastGate.length,c:"var(--rel)",go:"gate",s:`ค้าง ≥100 วัน ${fmt(lastGate.filter(g=>g.d>=100).length)} ตู้`}]:[]),
@@ -454,7 +458,7 @@ function render(){
   tLoc.onclick=e=>{const tr=e.target.closest("tr[data-loc]"); if(!tr) return; S.loc = S.loc===tr.dataset.loc?"ALL":tr.dataset.loc; render();};
 
   // Alert list (>=100)
-  const al = rows.filter(r=>r.d>=100).sort((a,b)=>b.d-a.d);
+  const al = rows.filter(isLong).sort((a,b)=>b.d-a.d);
   alertAll = al;
   const relN = al.filter(r=>RELEASED.has(r.cn)).length;
   alertCount.innerHTML = `${fmt(al.length)} ตู้ (≥200 วัน: <span class="dy">${fmt(al.filter(r=>r.d>=200).length)}</span>)${relN?` <span class="rel">ปล่อยออกแล้ว ${fmt(relN)}</span>`:""}`;
@@ -510,7 +514,7 @@ const COLS=[["ar","Area"],["loc","Location"],["d","Days","num"],["cn","Container
 let lastRows=[];
 function renderMain(rows){
   const k=S.sortKey, dir=S.sortDir;
-  rows = rows.filter(r=>YARD_LOCS.has(r.loc));   // เฉพาะลานหลัก
+  rows = rows.filter(inList);   // เฉพาะลานหลัก และไม่รวม OEV/OEP/OEW
   mainBand = bandButtons(mainBands, rows, mainBand);
   if(mainBand!=="ALL") rows = rows.filter(r=>bandOf(r.d)===mainBand);
   lastRows = rows.slice().sort((a,b)=>{const x=a[k]??"",y=b[k]??""; return (x>y?1:x<y?-1:0)*dir || b.d-a.d;});
