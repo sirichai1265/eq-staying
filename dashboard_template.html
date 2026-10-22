@@ -159,7 +159,7 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
       <button class="tab" data-tab="overview">📊 ภาพรวม</button>
       <button class="tab" data-tab="long">⚠ LONG STAYING <span class="cnt hot" id="tabLong"></span></button>
       <button class="tab" data-tab="gate">🚚 ตู้ปล่อยออก <span class="cnt" id="tabGate"></span></button>
-      <button class="tab" data-tab="list">📋 รายการตู้ <span class="cnt" id="tabList"></span></button>
+      <button class="tab" data-tab="list" hidden>📋 รายการตู้ <span class="cnt" id="tabList"></span></button>
     </nav>
   </div>
 </div>
@@ -259,7 +259,7 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
   </section>
 
   <!-- ===== รายการตู้ ===== -->
-  <section class="page" id="pg-list">
+  <section class="page" id="pg-list" hidden>
     <div class="card">
       <div class="tablebar">
         <h2 style="margin:0">รายการตู้ในลาน (ไม่รวม OEV/OEP/OEW · เรียงตาม Days มาก → น้อย)</h2>
@@ -658,7 +658,7 @@ csvBtn.onclick=()=>{
 
 render();
 renderGate();
-setTab(["long","gate","list"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "overview");
+setTab(["long","gate"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "overview");
 </script>
 </body>
 </html>
