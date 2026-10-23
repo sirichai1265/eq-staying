@@ -100,12 +100,12 @@ def fmt_vl(v):
     return f"{t[:4]}-{t[4:6]}-{t[6:8]} {t[8:10]}:{t[10:12]}" if len(t) == 12 else t
 
 
-def logo_data_uri():
-    path = os.path.join(HERE, "heunga_logo.png")
+def logo_data_uri(name="heunga_logo.png", mime="image/png"):
+    path = os.path.join(HERE, name)
     if not os.path.exists(path):
         return ""
     with open(path, "rb") as f:
-        return "data:image/png;base64," + base64.b64encode(f.read()).decode()
+        return f"data:{mime};base64," + base64.b64encode(f.read()).decode()
 
 
 def main():
@@ -178,6 +178,7 @@ def build_staying(src, archive_it=True, write_index=True):
         html = html.replace("/*__DATA__*/null", json.dumps(rows, ensure_ascii=False, separators=(",", ":")))
         html = html.replace("/*__GATE__*/null", json.dumps(gate, ensure_ascii=False, separators=(",", ":")))
         html = html.replace("__LOGO__", logo_data_uri())
+        html = html.replace("__BANNER__", logo_data_uri("heunga_banner.jpg", "image/jpeg"))
         html = html.replace("/*__META__*/null", json.dumps(meta, ensure_ascii=False))
         with open(OUT, "w", encoding="utf-8") as f:
             f.write(html)
