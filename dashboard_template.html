@@ -222,6 +222,12 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
 
   <!-- ===== LONG STAYING ===== -->
   <section class="page" id="pg-long">
+    <div class="card mb">
+      <h2 id="ldTitle">LONG STAYING รายวัน</h2>
+      <p class="hint">ต้นวัน = STAYING ล่าสุดใน STOCK DAILY ที่ไม่เกินวันนั้น (อายุ ≥100 วัน ณ วันนั้น · ไม่รวม OEV/OEP/OEW) · ปล่อยออก = GATE OUT ตามรีพอตลาน · คลิกแถวเพื่อดูตู้ที่ปล่อยออกวันนั้น</p>
+      <div class="scroll" style="max-height:460px" id="ldTable"></div>
+      <div id="ldGone" style="margin-top:12px"></div>
+    </div>
     <div class="card alert">
       <div class="tablebar">
         <h2 style="margin:0">⚠ แจ้งเตือน LONG STAYING (≥ 100 วัน · ไม่รวม OEV/OEP/OEW) — <span id="alertCount"></span></h2>
@@ -298,9 +304,10 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
 const DATA_RAW = /*__DATA__*/null;
 const GATE = /*__GATE__*/null || [];
 const META = /*__META__*/null;
+const LONGDAILY = /*__LONGDAILY__*/null || [];
 // ตู้ที่ปล่อยออกแล้วหลังวันที่ของข้อมูล STAYING (และไม่ได้กลับเข้าลาน) — ตัดออกจากภาพรวม / LONG STAYING
 const RELEASED = new Map();
-GATE.forEach(g=>{ if(g.gd>=META.lastEq && !g.back && !RELEASED.has(g.cn)) RELEASED.set(g.cn,g); });
+GATE.forEach(g=>{ if(g.gd>=(META.snap||META.lastEq) && !g.back && !RELEASED.has(g.cn)) RELEASED.set(g.cn,g); });
 const DATA = DATA_RAW.filter(r=>!RELEASED.has(r.cn));
 const CUT = DATA_RAW.filter(r=>RELEASED.has(r.cn));
 const REEFER = ["22RE","45RE"];
@@ -509,6 +516,27 @@ function renderAlert(){
     al.map((r,i)=>bandHead(al,i)+`<tr class="${r.d>=200?"rowy":"rowr"}"><td class="muted">${i+1}</td><td>${r.ar}</td><td>${r.loc}</td><td class="num">${dayCell(r.d)}</td><td class="mono"><b>${esc(r.cn)}</b>${relBadge(r.cn)}</td><td>${r.st}</td><td><span class="gp ${r.gp}">${r.gp}</span></td><td>${r.mc}</td><td>${r.eq}</td><td>${r.by??""}</td><td class="rfcol">${esc(r.rf)}</td></tr>`).join("") + `</table>`
     : `<div class="empty">${v?`ไม่พบเบอร์ตู้ "${esc(v)}" ในรายการ LONG STAYING`:"ไม่มีตู้ที่อยู่เกิน 100 วันในตัวกรองปัจจุบัน 🎉"}</div>`;
 }
+
+// ===== LONG STAYING รายวัน (ต้นวัน / ปล่อยออก / คงเหลือ) =====
+let ldSel = LONGDAILY.length ? LONGDAILY[LONGDAILY.length-1].d : "";
+function renderLongDaily(){
+  if(!LONGDAILY.length){ ldTable.innerHTML=`<div class="empty">ยังไม่มีข้อมูล</div>`; return; }
+  const locs = YARDS.flatMap(y=>y.locs).filter(l=>LONGDAILY.some(x=>x.byLoc[l]));
+  const extra = uniq(LONGDAILY.flatMap(x=>Object.keys(x.byLoc))).filter(l=>!locs.includes(l));
+  const cols = locs.concat(extra);
+  const mx = Math.max(...LONGDAILY.map(x=>x.start));
+  ldTitle.textContent = `LONG STAYING รายวัน ${dfull(LONGDAILY[0].d)} – ${dfull(LONGDAILY[LONGDAILY.length-1].d)}`;
+  ldTable.innerHTML = `<table><tr><th>วันที่</th><th>STAYING ที่ใช้</th><th class="num">LONG ต้นวัน</th><th class="num">ปล่อยออก</th><th class="num">คงเหลือ</th><th></th>${cols.map(l=>`<th class="num">${l}</th>`).join("")}</tr>` +
+    LONGDAILY.slice().reverse().map(x=>`<tr style="cursor:pointer${x.d===ldSel?";font-weight:700":""}" data-d="${x.d}"><td>${dfull(x.d)}${x.d===ldSel?" ✓":""}</td><td class="muted">${dfull(x.snap)}</td><td class="num">${fmt(x.start)}</td><td class="num"><b style="color:var(--rel)">${x.out?fmt(x.out):"·"}</b></td><td class="num dr">${fmt(x.end)}</td>
+      <td><div class="stack" style="min-width:110px" title="คงเหลือ ${x.end} · ปล่อยออก ${x.out}"><span style="width:${x.end/mx*100}%;background:var(--r)"></span><span style="width:${x.out/mx*100}%;background:var(--rel)"></span></div></td>
+      ${cols.map(l=>{const v=x.byLoc[l]; return `<td class="num">${v?`${fmt(v[0]-v[1])}${v[1]?` <span style="color:var(--rel);font-size:11.5px">(−${v[1]})</span>`:""}`:'<span class="muted">·</span>'}</td>`;}).join("")}</tr>`).join("") +
+    `<tr class="tot"><td>รวมปล่อยออก</td><td></td><td></td><td class="num" style="color:var(--rel)">${fmt(LONGDAILY.reduce((s,x)=>s+x.out,0))}</td><td></td><td></td>${cols.map(l=>`<td class="num" style="color:var(--rel)">${fmt(LONGDAILY.reduce((s,x)=>s+((x.byLoc[l]||[0,0])[1]),0))}</td>`).join("")}</tr></table>`;
+  const x = LONGDAILY.find(z=>z.d===ldSel);
+  ldGone.innerHTML = x && x.gone.length ? `<h2 style="font-size:14px;color:var(--rel)">ตู้ค้างนานที่ปล่อยออก ${dfull(x.d)} — ${x.gone.length} ตู้</h2><div class="scroll" style="max-height:320px"><table><tr><th>#</th><th>Location</th><th>Container No</th><th>Size/Type</th><th class="num">วันค้าง</th><th>EQ Date</th><th>Move Code</th><th>GATE OUT</th><th>ลาน</th></tr>` +
+    x.gone.map((r,i)=>`<tr><td class="muted">${i+1}</td><td>${r.loc}</td><td class="mono"><b>${esc(r.cn)}</b></td><td>${r.st}</td><td class="num">${dayCell(r.d)}</td><td>${r.eq}</td><td>${r.mc}</td><td><b style="color:var(--rel)">${dmy(x.d)} ${r.gt}</b></td><td>${esc(r.yard)}</td></tr>`).join("") + `</table></div>`
+    : (x ? `<div class="muted">ไม่มีตู้ค้างนานที่ปล่อยออกวันที่ ${dfull(x.d)}</div>` : "");
+}
+ldTable.onclick=e=>{const tr=e.target.closest("tr[data-d]"); if(!tr) return; ldSel=tr.dataset.d; renderLongDaily();};
 
 // ===== แบ่งกลุ่มละ 50 วัน (0–49, 50–99, 100–149, …) =====
 const bandOf = d => Math.floor(d/50);
@@ -740,6 +768,7 @@ csvBtn.onclick=()=>{
 
 render();
 renderGate();
+renderLongDaily();
 setTab(["long","gate"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "overview");
 </script>
 </body>

@@ -50,17 +50,12 @@ def day_folders():
     return sorted(d for d in os.listdir(HERE) if DAY_DIR.fullmatch(d) and os.path.isdir(os.path.join(HERE, d)))
 
 
-CURRENT = os.path.join(HERE, ".current_staying")   # ไฟล์ STAYING ที่ dashboard ใช้อยู่ (ใช้ต่อเมื่อรันแบบไม่ใส่ไฟล์)
 
 
 def latest_archived_staying():
-    try:
-        with open(CURRENT, encoding="utf-8") as f:
-            p = os.path.join(HERE, f.read().strip())
-        if os.path.isfile(p):
-            return p
-    except OSError:
-        pass
+    snaps = staying_snapshots()
+    if snaps:
+        return snaps[max(snaps)]
     for d in reversed(day_folders()):
         files = xls_in(os.path.join(HERE, d), gate=False)
         if files:
@@ -157,6 +152,18 @@ def load_staying_rows(src):
     return rows
 
 
+def snap_date(path, last_eq):
+    """วันที่ของไฟล์ STAYING (ข้อมูลเช้าวันนั้น): จากโฟลเดอร์ YYYY-MM-DD / M-D หรือชื่อไฟล์ M-D-... ไม่งั้น = EQ Date ล่าสุด + 1"""
+    from datetime import timedelta
+    parent = os.path.basename(os.path.dirname(os.path.abspath(path)))
+    if DAY_DIR.fullmatch(parent):
+        return parent
+    m = re.fullmatch(r"(\d{1,2})-(\d{1,2})", parent) or re.match(r"(\d{1,2})-(\d{1,2})-", os.path.basename(path))
+    if m:
+        return f"2026-{int(m.group(1)):02d}-{int(m.group(2)):02d}"
+    return (datetime.strptime(last_eq, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d") if last_eq else ""
+
+
 def build_staying(src, archive_it=True, write_index=True):
     rows = load_staying_rows(src)
     eq_dates = [x["eq"] for x in rows if x["eq"]]
@@ -165,7 +172,9 @@ def build_staying(src, archive_it=True, write_index=True):
         "generated": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "lastEq": max(eq_dates) if eq_dates else "",
     }
+    meta["snap"] = snap_date(src, meta["lastEq"])
     gate = load_gateout_history()
+    daily = long_daily()
 
     print(f"Source : {meta['source']}  ({len(rows)} containers)")
     for g in ("AV", "DMG", "OTHER"):
@@ -177,6 +186,7 @@ def build_staying(src, archive_it=True, write_index=True):
             html = f.read()
         html = html.replace("/*__DATA__*/null", json.dumps(rows, ensure_ascii=False, separators=(",", ":")))
         html = html.replace("/*__GATE__*/null", json.dumps(gate, ensure_ascii=False, separators=(",", ":")))
+        html = html.replace("/*__LONGDAILY__*/null", json.dumps(daily, ensure_ascii=False, separators=(",", ":")))
         html = html.replace("__LOGO__", logo_data_uri())
         html = html.replace("__BANNER__", logo_data_uri("heunga_banner.jpg", "image/jpeg"))
         html = html.replace("/*__META__*/null", json.dumps(meta, ensure_ascii=False))
@@ -186,9 +196,7 @@ def build_staying(src, archive_it=True, write_index=True):
     if archive_it:
         src = archive(src, rows, meta)
     if write_index:
-        with open(CURRENT, "w", encoding="utf-8") as f:
-            f.write(os.path.relpath(os.path.abspath(src), HERE))
-        write_gate_summaries(rows, meta, gate)
+        write_gate_summaries(rows, meta, gate, daily)
 
 
 # ===================== GATE OUT (ตู้ปล่อยออก) =====================
@@ -271,12 +279,27 @@ def staying_snapshots():
 
 
 def load_snapshot(path, cache):
-    key = f"{path}|{os.path.getmtime(path)}"
+    """{เบอร์ตู้: [EQ Date, Move Code, Location, Size/Type]}"""
+    key = f"v2|{path}|{os.path.getmtime(path)}"
     if key not in cache:
-        cols = ["Container No", "EQ Date", "Move Code"]
+        cols = ["Container No", "EQ Date", "Move Code", "Location", "Size/Type"]
         s = pd.read_excel(path, usecols=cols).dropna(subset=["Container No", "EQ Date"])[cols]
-        cache[key] = {str(cn).strip(): [str(eq)[:10], clean(mc)] for cn, eq, mc in s.itertuples(index=False)}
+        cache[key] = {str(cn).strip(): [str(eq)[:10], clean(mc), clean(loc), clean(st)]
+                      for cn, eq, mc, loc, st in s.itertuples(index=False)}
     return cache[key]
+
+
+SNAPS = {}      # {วันที่: {เบอร์ตู้: [...]}}  โหลดใน load_gateout_history
+MOVES = {}      # {เบอร์ตู้: [(วันที่, เวลา, "IN"/"OUT", ลาน, Location), ...]}
+
+
+def released_between(cn, start, end):
+    """ตู้ถูกปล่อยออกระหว่าง start..end (ความเคลื่อนไหวล่าสุดในช่วงนี้คือ GATE OUT) -> คืน move นั้น"""
+    last = None
+    for mv in MOVES.get(cn, ()):
+        if start <= mv[0] <= end and (last is None or mv[:2] > last[:2]):
+            last = mv
+    return last if last and last[2] == "OUT" else None
 
 
 def fmt_time(v):
@@ -292,6 +315,9 @@ def load_gateout_history():
         return []
     allmv = pd.read_excel(GATE_DB, "Container Moves")
     allmv["gd"] = allmv["Date"].astype(str).str[:10]
+    MOVES.clear()
+    for cn, gd, gt, mv, yard, loc in allmv[["Container No", "gd", "Gate Time", "Move", "Yard", "Location"]].itertuples(index=False):
+        MOVES.setdefault(clean(cn), []).append((gd, fmt_time(gt), "OUT" if mv == "GATE OUT" else "IN", clean(yard), clean(loc)))
     # GATE IN ล่าสุดของแต่ละตู้ (ไว้เช็คว่าปล่อยออกแล้วกลับเข้าลานอีกหรือไม่)
     last_in = {}
     for cn, gd, gt in allmv[allmv["Move"] == "GATE IN"][["Container No", "gd", "Gate Time"]].itertuples(index=False):
@@ -307,6 +333,8 @@ def load_gateout_history():
         cache = {}
     snaps = staying_snapshots()
     loaded = {d: load_snapshot(p, cache) for d, p in snaps.items() if d <= GATE_TO}
+    SNAPS.clear()
+    SNAPS.update(loaded)
     with open(SNAP_CACHE, "w", encoding="utf-8") as f:
         json.dump({k: v for k, v in cache.items() if k.split("|")[0] in snaps.values()}, f)
     days_desc = sorted(loaded, reverse=True)
@@ -318,7 +346,7 @@ def load_gateout_history():
         eq, pmc = "", ""
         for d in days_desc:                      # STAYING ล่าสุดที่ไม่เกินวันปล่อย ที่มีตู้นี้
             if d <= gd and cn in loaded[d]:
-                eq, pmc = loaded[d][cn]
+                eq, pmc = loaded[d][cn][:2]
                 break
         days = (datetime.strptime(gd, "%Y-%m-%d") - datetime.strptime(eq, "%Y-%m-%d")).days if eq and eq <= gd else None
         gt = fmt_time(row["Gate Time"])
@@ -330,6 +358,135 @@ def load_gateout_history():
         })
     out.sort(key=lambda x: (x["gd"], x["gt"]), reverse=True)
     return out
+
+
+def long_daily():
+    """ทุกวันที่มี GATE OUT (ตั้งแต่ GATE_FROM): LONG STAYING ณ วันนั้นจาก STAYING ล่าสุดที่ไม่เกินวันนั้น
+    - ต้นวัน = ตู้ใน snapshot ที่อายุ ≥100 วัน ณ วันนั้น (ไม่รวม OEV/OEP/OEW) และยังไม่ถูกปล่อยก่อนวันนั้น
+    - ปล่อยวันนี้ = GATE OUT วันนั้นตามรีพอตลาน · คงเหลือ = ต้นวัน − ปล่อยวันนี้"""
+    if not SNAPS:
+        return []
+    from datetime import timedelta
+    days = sorted({mv[0] for mvs in MOVES.values() for mv in mvs if mv[2] == "OUT" and GATE_FROM <= mv[0] <= GATE_TO})
+    out = []
+    for d in days:
+        sd = max((x for x in SNAPS if x <= d), default=None)
+        if not sd:
+            continue
+        snap = SNAPS[sd]
+        dt = datetime.strptime(d, "%Y-%m-%d")
+        prev = (dt - timedelta(days=1)).strftime("%Y-%m-%d")
+        start, gone_today, in_yard = [], [], 0
+        for cn, (eq, mc, loc, st) in snap.items():
+            if mc in RELEASE_MOVES or not eq:
+                continue
+            if released_between(cn, sd, prev):
+                continue                                 # ปล่อยไปแล้วก่อนวันนี้
+            in_yard += 1
+            age = (dt - datetime.strptime(eq, "%Y-%m-%d")).days
+            if age < 100:
+                continue
+            rec = {"cn": cn, "loc": loc, "st": st, "mc": mc, "eq": eq, "d": age}
+            start.append(rec)
+            g = released_between(cn, d, d)
+            if g:
+                gone_today.append(dict(rec, gt=g[1], yard=g[3]))
+        locs = sorted({r["loc"] for r in start})
+        out.append({
+            "d": d, "snap": sd, "inYard": in_yard,
+            "start": len(start), "out": len(gone_today), "end": len(start) - len(gone_today),
+            "byLoc": {l: [sum(r["loc"] == l for r in start), sum(r["loc"] == l for r in gone_today)] for l in locs},
+            "gone": sorted(gone_today, key=lambda r: -r["d"]),
+            "remain": sorted([r for r in start if r["cn"] not in {g["cn"] for g in gone_today}], key=lambda r: -r["d"]),
+        })
+    write_long_daily_xlsx(out)
+    for x in out:      # ในหน้าเว็บเก็บแค่ตัวเลข + รายการที่ปล่อยออก (รายการคงเหลืออยู่ใน Excel)
+        x.pop("remain")
+    if out:
+        print(f"LONG STAYING รายวัน {out[0]['d']} – {out[-1]['d']}: ล่าสุด ต้นวัน {out[-1]['start']} · ปล่อย {out[-1]['out']} · คงเหลือ {out[-1]['end']}")
+    return out
+
+
+def write_long_daily_xlsx(daily):
+    """EQ STAYING/LONG STAYING/LONG_STAYING_Daily_<จาก>_<ถึง>.xlsx"""
+    if not daily:
+        return
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    thin = Side(style="thin", color="BFC5CE")
+    border = Border(top=thin, left=thin, bottom=thin, right=thin)
+
+    def head(ws, row, vals, color="1F5FBF"):
+        for j, v in enumerate(vals, 1):
+            c = ws.cell(row, j, v)
+            c.font = Font(bold=True, color="FFFFFF")
+            c.fill = PatternFill("solid", fgColor=color)
+            c.alignment = Alignment(horizontal="center", wrap_text=True)
+            c.border = border
+
+    def put(ws, row, vals, bold=False, fill=None):
+        for j, v in enumerate(vals, 1):
+            c = ws.cell(row, j, v)
+            c.border = border
+            if bold:
+                c.font = Font(bold=True)
+            if fill:
+                c.fill = PatternFill("solid", fgColor=fill)
+
+    locs = sorted({l for x in daily for l in x["byLoc"]})
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "สรุปรายวัน"
+    ws["A1"] = f"LONG STAYING (≥100 วัน · ไม่รวม OEV/OEP/OEW) รายวัน {daily[0]['d']} – {daily[-1]['d']}"
+    ws["A1"].font = Font(bold=True, size=14)
+    ws["A2"] = ("ต้นวัน = ตู้ใน STAYING ล่าสุดที่ไม่เกินวันนั้น (STOCK DAILY) อายุ ≥100 วัน ณ วันนั้น และยังไม่ถูกปล่อย · "
+                "ปล่อยวันนี้ = GATE OUT ตามรีพอตลาน (GATE MOVE) · คงเหลือ = ต้นวัน − ปล่อยวันนี้")
+    ws["A2"].font = Font(color="6B7684")
+    head(ws, 4, ["วันที่", "STAYING ที่ใช้", "ตู้ในลาน (ไม่รวม OE)", "LONG ต้นวัน", "ปล่อยออกวันนี้", "LONG คงเหลือ"]
+         + [f"{l} คงเหลือ" for l in locs])
+    for i, x in enumerate(daily, 5):
+        put(ws, i, [x["d"], x["snap"], x["inYard"], x["start"], x["out"], x["end"]]
+            + [x["byLoc"].get(l, [0, 0])[0] - x["byLoc"].get(l, [0, 0])[1] for l in locs])
+        ws.cell(i, 5).font = Font(bold=True, color="0F766E")
+        ws.cell(i, 6).font = Font(bold=True, color="B91C1C")
+    tot = [sum(x["out"] for x in daily)]
+    put(ws, len(daily) + 5, ["รวมปล่อยออก", "", "", "", tot[0], ""], bold=True, fill="EEF1F5")
+    for col, w in zip("ABCDEFGHIJKLMN", [12, 13, 12, 11, 12, 12] + [12] * 8):
+        ws.column_dimensions[col].width = w
+    ws.freeze_panes = "A5"
+
+    ws2 = wb.create_sheet("ปล่อยออกแต่ละลาน")
+    head(ws2, 1, ["วันที่"] + locs + ["รวม"], "0F766E")
+    for i, x in enumerate(daily, 2):
+        vals = [x["byLoc"].get(l, [0, 0])[1] for l in locs]
+        put(ws2, i, [x["d"]] + vals + [sum(vals)])
+    put(ws2, len(daily) + 2, ["รวม"] + [sum(x["byLoc"].get(l, [0, 0])[1] for x in daily) for l in locs] + [tot[0]], bold=True, fill="EEF1F5")
+    ws2.column_dimensions["A"].width = 12
+
+    def list_sheet(name, rows, color, with_gate):
+        sh = wb.create_sheet(name)
+        hd = ["No.", "วันที่", "Location", "Container No", "Size/Type", "วันค้าง", "EQ Date", "Move Code"] + (["GATE OUT", "ลาน"] if with_gate else [])
+        head(sh, 1, hd, color)
+        for i, (d, r) in enumerate(rows, 1):
+            put(sh, i + 1, [i, d, r["loc"], r["cn"], r["st"], r["d"], r["eq"], r["mc"]] + ([r["gt"], r["yard"]] if with_gate else []),
+                fill="FFF59D" if r["d"] >= 200 else ("F0FDFA" if with_gate else "FEE2E2"))
+            sh.cell(i + 1, 6).font = Font(bold=True, color="B91C1C")
+        for col, w in zip("ABCDEFGHIJ", [6, 12, 10, 16, 10, 8, 12, 11, 9, 11]):
+            sh.column_dimensions[col].width = w
+        sh.freeze_panes = "A2"
+        sh.auto_filter.ref = f"A1:{chr(64 + len(hd))}{len(rows) + 1}"
+
+    list_sheet("ตู้ค้างนานที่ปล่อยออก", [(x["d"], r) for x in daily for r in x["gone"]], "0F766E", True)
+    last = daily[-1]
+    list_sheet(f"คงเหลือ {last['d']}", [(last["d"], r) for r in last["remain"]], "B91C1C", False)
+    outdir = os.path.join(HERE, "LONG STAYING")
+    os.makedirs(outdir, exist_ok=True)
+    path = os.path.join(outdir, f"LONG_STAYING_Daily_{daily[0]['d']}_{daily[-1]['d']}.xlsx")
+    try:
+        wb.save(path)
+        print(f"LONG STAYING daily: {path}")
+    except PermissionError:
+        print(f"!! ไฟล์เปิดอยู่ ไม่ได้บันทึก: {path}")
 
 
 def archive_gateout(src):
@@ -539,7 +696,7 @@ def iso_week(d):
     return f"{y}-W{w:02d}", f"{mon:%d/%m}–{sun:%d/%m}"
 
 
-def write_gate_summaries(rows, meta, gate):
+def write_gate_summaries(rows, meta, gate, ldaily=()):
     """ตัดยอดและสรุปตู้ปล่อยออกรายวัน
     - EQ STAYING/GATE OUT/GATE_OUT_Summary.xlsx : รายสัปดาห์ / รายวัน (พร้อมยอดคงเหลือ) / แต่ละลาน / รายการ
     - EQ STAYING/<วันที่>/GATE_OUT_<วันที่>.xlsx : สรุปและรายการตู้ปล่อยออกของวันนั้น"""
@@ -550,13 +707,7 @@ def write_gate_summaries(rows, meta, gate):
 
     thin = Side(style="thin", color="BFC5CE")
     border = Border(top=thin, left=thin, bottom=thin, right=thin)
-    base_cn = {r["cn"]: r for r in rows}
-    long_base = {r["cn"] for r in rows if r["d"] >= 100 and r["mc"] not in RELEASE_MOVES}
-    # วันที่ตัดยอด (ปล่อยออกครั้งแรกหลังวันข้อมูล STAYING และไม่กลับเข้าลาน)
-    cut_day = {}
-    for g in gate:
-        if g["cn"] in base_cn and g["gd"] >= meta["lastEq"] and not g["back"]:
-            cut_day[g["cn"]] = min(cut_day.get(g["cn"], "9999"), g["gd"])
+    ld = {x["d"]: x for x in ldaily}
     days = sorted({g["gd"] for g in gate})
     yards = sorted({(g["loc"], g["yard"]) for g in gate})
 
@@ -624,7 +775,7 @@ def write_gate_summaries(rows, meta, gate):
     ws.title = "สรุป"
     ws["A1"] = f"สรุปตู้ปล่อยออก (GATE OUT จากรีพอตลาน) {days[0]} – {days[-1]}"
     ws["A1"].font = Font(bold=True, size=14)
-    ws["A2"] = (f"ยอดตั้งต้น: {meta['source']} ({len(rows):,} ตู้ · LONG STAYING ≥100 วัน {len(long_base):,} ตู้) · "
+    ws["A2"] = (f"ยอดในลาน/LONG STAYING รายวันจาก STAYING ใน STOCK DAILY (ฉบับล่าสุดที่ไม่เกินวันนั้น) ตัดตู้ที่ปล่อยออกตามรีพอตลาน · "
                 f"สร้างเมื่อ {meta['generated']}")
     ws["A2"].font = Font(color="6B7684")
     weeks = {}
@@ -635,12 +786,11 @@ def write_gate_summaries(rows, meta, gate):
                 ["รวม", "", len(days)] + stats(gate))
     daily = []
     for d in days:
-        cut = sum(1 for v in cut_day.values() if v <= d)
-        cut_long = sum(1 for cn, v in cut_day.items() if v <= d and cn in long_base)
+        x = ld.get(d, {})
         daily.append([d, iso_week(d)[0]] + stats([g for g in gate if g["gd"] == d]) +
-                     [cut, len(rows) - cut, len(long_base) - cut_long])
+                     [x.get("snap", ""), x.get("inYard", ""), x.get("start", ""), x.get("out", ""), x.get("end", "")])
     nxt = table(ws, nxt, "รายวัน + ตัดยอด (ยอดคงเหลือจากยอดตั้งต้น)",
-                ["วันที่ปล่อย", "สัปดาห์"] + shead + ["ตัดยอดสะสม", "คงเหลือในลาน", "LONG ≥100 คงเหลือ"], daily)
+                ["วันที่ปล่อย", "สัปดาห์"] + shead + ["STAYING ที่ใช้", "ตู้ในลานต้นวัน", "LONG ต้นวัน", "LONG ปล่อยวันนี้", "LONG คงเหลือ"], daily)
     table(ws, nxt, "แต่ละลาน", ["ลาน", "Location"] + shead,
           [[y, l] + stats([g for g in gate if g["loc"] == l]) for l, y in yards], ["รวม", ""] + stats(gate))
     ws.column_dimensions["A"].width = 14
@@ -665,8 +815,8 @@ def write_gate_summaries(rows, meta, gate):
         ws.title = "สรุป"
         ws["A1"] = f"ตู้ปล่อยออกจากลาน วันที่ {d[8:10]}/{d[5:7]}/{d[:4]} ({iso_week(d)[0]})"
         ws["A1"].font = Font(bold=True, size=14)
-        ws["A2"] = (f"ปล่อยออก {len(lst):,} ตู้ · ตัดยอดสะสม {row[-3]:,} · คงเหลือในลาน {row[-2]:,} ตู้ · "
-                    f"LONG STAYING ≥100 วันคงเหลือ {row[-1]:,} ตู้ (ยอดตั้งต้น {meta['source']})")
+        ws["A2"] = (f"ปล่อยออก {len(lst):,} ตู้ · LONG STAYING ต้นวัน {row[-3]} · ปล่อยวันนี้ {row[-2]} · คงเหลือ {row[-1]} "
+                    f"(STAYING {row[-5]})")
         ws["A2"].font = Font(color="6B7684")
         table(ws, 4, "แต่ละลาน", ["ลาน", "Location"] + shead,
               [[y, l] + stats([g for g in lst if g["loc"] == l]) for l, y in yards if any(g["loc"] == l for g in lst)],
@@ -682,7 +832,7 @@ def write_gate_summaries(rows, meta, gate):
         except PermissionError:
             print(f"!! ไฟล์เปิดอยู่ ไม่ได้บันทึก: GATE_OUT_{d}.xlsx")
     last = daily[-1]
-    print(f"  ตัดยอดถึง {last[0]}: ปล่อยออกสะสม {last[-3]:,} · คงเหลือในลาน {last[-2]:,} · LONG ≥100 คงเหลือ {last[-1]:,}"
+    print(f"  ตัดยอดถึง {last[0]}: LONG ต้นวัน {last[-3]} · ปล่อย {last[-2]} · LONG คงเหลือ {last[-1]}"
           f" · ไฟล์รายวัน {len(daily)} วัน")
 
 

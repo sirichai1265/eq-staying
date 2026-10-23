@@ -4,7 +4,7 @@ Dashboard ติดตามตู้ AV / DMG, LONG STAYING และตู้�
 
 แท็บในหน้าเว็บ
 - **📊 ภาพรวม** — KPI, กราฟอายุตู้ (Aging) ตาม Area, สรุป Area × Group, Aging ตาม Location
-- **⚠ LONG STAYING** — ตู้ ≥100 วัน แบ่งกลุ่มละ 50 วัน, ค้นหาเบอร์ตู้, Export Excel
+- **⚠ LONG STAYING** — ตารางรายวัน (ต้นวัน / ปล่อยออก / คงเหลือ แยกลาน) + รายการตู้ ≥100 วัน แบ่งกลุ่มละ 50 วัน, ค้นหาเบอร์ตู้, Export Excel
 - **🚚 ตู้ปล่อยออก** — GATE OUT จากรีพอตลาน (`GATE MOVE\GATE MOVE DATABASE.xlsx`) ตั้งแต่ 1/10 พร้อมวันค้างก่อนปล่อย · เลือกสัปดาห์ (ISO จันทร์–อาทิตย์) / ช่วงวันที่ / ลาน · สรุปแต่ละลาน · สรุปรายวัน/รายสัปดาห์ · Export Excel
 
 เกณฑ์
@@ -27,7 +27,8 @@ Dashboard ติดตามตู้ AV / DMG, LONG STAYING และตู้�
 
 ## ตัดยอดตู้ปล่อยออก (อัตโนมัติหลังรัน GATE MOVE)
 - `GATE MOVE\yard_gate_summary.py` เรียก `build_dashboard.py` ต่อท้ายให้เอง (ยกเว้นโหมด `--check`)
-- ใช้ไฟล์ STAYING ตั้งต้นเดิม (`.current_staying`) แล้วตัดตู้ที่ปล่อยออกแล้วตาม GATE MOVE DATABASE
+- ใช้ไฟล์ STAYING ล่าสุดใน `STOCK DAILY` (หรือโฟลเดอร์วันที่) แล้วตัดตู้ที่ปล่อยออกตั้งแต่วันของไฟล์นั้นตาม GATE MOVE DATABASE
+- LONG STAYING รายวัน: `LONG STAYING\LONG_STAYING_Daily_<จาก>_<ถึง>.xlsx` (สรุปรายวัน / ปล่อยออกแต่ละลาน / ตู้ค้างนานที่ปล่อยออก / คงเหลือล่าสุด)
 - ผลลัพธ์: `GATE OUT\GATE_OUT_Summary.xlsx` (รายสัปดาห์ / รายวัน + ยอดคงเหลือ / แต่ละลาน / รายการ) และ `<วันที่>\GATE_OUT_<วันที่>.xlsx`
 - อัปเดตหน้าเว็บออนไลน์: `git add index.html && git commit -m "Update gate out" && git push`
 
