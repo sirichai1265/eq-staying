@@ -275,10 +275,16 @@ def load_gateout_history():
     if not os.path.exists(GATE_DB):
         print(f"!! ไม่พบ {GATE_DB}")
         return []
-    db = pd.read_excel(GATE_DB, "Container Moves")
-    db = db[db["Move"] == "GATE OUT"].copy()
-    db["gd"] = db["Date"].astype(str).str[:10]
-    db = db[(db["gd"] >= GATE_FROM) & (db["gd"] <= GATE_TO)]
+    allmv = pd.read_excel(GATE_DB, "Container Moves")
+    allmv["gd"] = allmv["Date"].astype(str).str[:10]
+    # GATE IN ล่าสุดของแต่ละตู้ (ไว้เช็คว่าปล่อยออกแล้วกลับเข้าลานอีกหรือไม่)
+    last_in = {}
+    for cn, gd, gt in allmv[allmv["Move"] == "GATE IN"][["Container No", "gd", "Gate Time"]].itertuples(index=False):
+        k = (gd, fmt_time(gt))
+        cn = clean(cn)
+        if k > last_in.get(cn, ("", "")):
+            last_in[cn] = k
+    db = allmv[(allmv["Move"] == "GATE OUT") & (allmv["gd"] >= GATE_FROM) & (allmv["gd"] <= GATE_TO)].copy()
     try:
         with open(SNAP_CACHE, encoding="utf-8") as f:
             cache = json.load(f)
@@ -300,8 +306,10 @@ def load_gateout_history():
                 eq, pmc = loaded[d][cn]
                 break
         days = (datetime.strptime(gd, "%Y-%m-%d") - datetime.strptime(eq, "%Y-%m-%d")).days if eq and eq <= gd else None
+        gt = fmt_time(row["Gate Time"])
         out.append({
-            "cn": cn, "gd": gd, "gt": fmt_time(row["Gate Time"]), "loc": loc, "ar": area_of(loc, ""),
+            "cn": cn, "gd": gd, "gt": gt, "loc": loc, "ar": area_of(loc, ""),
+            "back": last_in.get(cn, ("", "")) > (gd, gt),      # กลับเข้าลานหลังปล่อยออก
             "yard": clean(row["Yard"]), "typ": clean(row["Type"]), "st": clean(row["TPSZ"]),
             "eq": eq, "d": days, "pmc": pmc, "pgp": group_of(pmc) if pmc else "",
         })
