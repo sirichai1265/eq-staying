@@ -229,7 +229,7 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
   <section class="page" id="pg-gate">
     <div class="card mb filters">
       <p class="hint" style="margin:0">ข้อมูลจากรีพอต GATE OUT ของลาน (SMART BKK · BC · HAST · CELLO · PW) <span id="gRange"></span></p>
-      <div class="frow"><span class="flabel">สัปดาห์</span><div id="gWeek" class="frow"></div></div>
+      <div class="frow"><span class="flabel">สัปดาห์</span><select id="gWFrom"></select><span class="muted">ถึง</span><select id="gWTo"></select></div>
       <div class="frow"><span class="flabel">วันที่ปล่อย</span><select id="gFrom"></select><span class="muted">ถึง</span><select id="gTo"></select><div id="gQuick" class="frow" style="margin-left:8px"></div></div>
       <div class="frow"><span class="flabel">ลาน</span><div id="gMove" class="frow"></div></div>
       <div class="frow"><span class="flabel">Area</span><div id="gArea" class="frow"></div></div>
@@ -254,14 +254,15 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
     </div>
     <div class="card">
       <div class="tablebar">
-        <h2 style="margin:0">รายงานตู้ค้างนานที่ปล่อยออก (เรียงวันค้างมาก → น้อย)</h2>
+        <h2 style="margin:0">รายงานตู้ค้างนานที่ปล่อยออก (เรียงวันค้างมาก → น้อย) — <span id="gCount"></span></h2>
         <div class="frow">
           <input type="search" id="gQ" placeholder="ค้นหาเบอร์ตู้">
+          <button class="btn" id="gToggle">▸ แสดงรายการ</button>
           <button class="btn solid" id="gXlsx">⬇ Export Excel</button>
         </div>
       </div>
       <div class="frow" style="margin-bottom:10px"><span class="flabel">วันค้าง</span><div id="gBucketBtns" class="frow"></div></div>
-      <div class="scroll" style="max-height:640px" id="gTable"></div>
+      <div class="scroll" style="max-height:640px;display:none" id="gTable"></div>
     </div>
   </section>
 
@@ -566,7 +567,12 @@ function isoWeek(d){ const t=new Date(d+"T00:00:00Z"); const wd=(t.getUTCDay()+6
   return {k:`${y}-W${String(w).padStart(2,"0")}`, w, rng:`${f(mon)}–${f(sun)}`}; }
 const GWEEKS = []; GDATES.forEach(d=>{ const wk=isoWeek(d); let x=GWEEKS.find(z=>z.k===wk.k); if(!x){x={...wk,days:[]};GWEEKS.push(x);} x.days.push(d); });
 GWEEKS.forEach(x=>{ x.from=x.days[x.days.length-1]; x.to=x.days[0]; });
-btnGroup(gWeek, GWEEKS.map(x=>[x.k,`W${x.w} <span class="muted" style="font-size:11.5px">${x.rng}</span>`]), v=>{ const x=GWEEKS.find(z=>z.k===v); setRange(x.from,x.to); });
+const wkOpts = GWEEKS.slice().reverse().map(x=>`<option value="${x.k}">W${x.w} (${x.rng})</option>`).join("");
+gWFrom.innerHTML = `<option value="">— เลือก —</option>` + wkOpts; gWTo.innerHTML = `<option value="">— เลือก —</option>` + wkOpts;
+function setWeeks(a,b){ const wa=GWEEKS.find(z=>z.k===a)||GWEEKS.find(z=>z.k===b), wb=GWEEKS.find(z=>z.k===b)||wa;
+  if(!wa) return; const lo=wa.k<=wb.k?wa:wb, hi=wa.k<=wb.k?wb:wa; setRange(lo.from,hi.to); }
+gWFrom.onchange=()=>setWeeks(gWFrom.value, gWTo.value||gWFrom.value);
+gWTo.onchange=()=>setWeeks(gWFrom.value||gWTo.value, gWTo.value);
 let gViewMode="day";
 btnGroup(gView, [["day","รายวัน"],["week","รายสัปดาห์"]], v=>{ gViewMode=v; renderGate(); });
 const GYARDS = uniq(GATE.map(g=>g.loc)).map(l=>[l, `${GATE.find(g=>g.loc===l).yard} (${l})`]);
@@ -574,7 +580,10 @@ btnGroup(gMove, [["ALL","ทั้งหมด"],...GYARDS], v=>{G.move=v;render
 gRange.textContent = GDATES.length ? `· มีข้อมูล ${dfull(GDATES[GDATES.length-1])} – ${dfull(GDATES[0])} (${GDATES.length} วัน)` : "";
 btnGroup(gArea, [["ALL","ทั้งหมด"],["BKK","BKK"],["LCH","LCH"]], v=>{G.area=v;renderGate();});
 btnGroup(gBucketBtns, [["ALL","ทั้งหมด"],...BUCKETS.map(b=>[b.k,`<span class="${b.cls}">${b.l} วัน</span>`]),["LONG","≥100 วัน"]], v=>{G.bucket=v;renderGateTable();});
-gQ.oninput=()=>{G.q=gQ.value.trim().toUpperCase();renderGateTable();};
+let gOpen=false;
+function setGateOpen(open){ gOpen=open; gTable.style.display=open?"":"none"; gToggle.textContent=open?"▾ ซ่อนรายการ":"▸ แสดงรายการ"; }
+gToggle.onclick=()=>setGateOpen(!gOpen);
+gQ.oninput=()=>{G.q=gQ.value.trim().toUpperCase(); if(G.q) setGateOpen(true); renderGateTable();};
 const gBucketOk = g => G.bucket==="ALL" || (g.d!=null && (G.bucket==="LONG" ? g.d>=100 : bucketOf(g.d).k===G.bucket));
 
 // แถวสรุป (ใช้ทั้งสรุปรายวันและสรุปแต่ละลาน)
@@ -591,7 +600,10 @@ function renderGate(){
   const rows = GATE.filter(g=>gPass(g));
   setButtons(gQuick, v=>{const [f,t]=QUICK.find(q=>q[0]===v)[2](); return f===G.from&&t===G.to;});
   const wkRows=GATE.filter(g=>gPass(g,"date"));
-  setButtons(gWeek, v=>{const x=GWEEKS.find(z=>z.k===v); return x.from===G.from&&x.to===G.to;}, Object.fromEntries(GWEEKS.map(x=>[x.k,wkRows.filter(g=>x.days.includes(g.gd)).length])));
+  // สัปดาห์ที่ตรงกับช่วงวันที่ที่เลือก (ถ้าช่วงเริ่ม/จบตรงขอบสัปดาห์พอดี)
+  const wf=GWEEKS.find(x=>x.from===G.from), wt=GWEEKS.find(x=>x.to===G.to);
+  gWFrom.value = wf&&wt ? wf.k : ""; gWTo.value = wf&&wt ? wt.k : "";
+  [...gWFrom.options,...gWTo.options].forEach(o=>{ const x=GWEEKS.find(z=>z.k===o.value); if(x) o.textContent=`W${x.w} (${x.rng}) · ${fmt(wkRows.filter(g=>x.days.includes(g.gd)).length)} ตู้`; });
   setButtons(gView, v=>v===gViewMode);
   const mvRows=GATE.filter(g=>gPass(g,"move")); setButtons(gMove, v=>v===G.move, Object.assign(Object.fromEntries(GYARDS.map(([l])=>[l,0])),countBy(mvRows,g=>g.loc),{ALL:mvRows.length}));
   const arRows=GATE.filter(g=>gPass(g,"area")); setButtons(gArea, v=>v===G.area, Object.assign({BKK:0,LCH:0},countBy(arRows,g=>g.ar),{ALL:arRows.length}));
@@ -642,6 +654,7 @@ function renderGate(){
 }
 let gTableRows=[];
 function renderGateTable(){
+  if(window.gCount) gCount.textContent = `${fmt(gRows.length)} ตู้ (≥100 วัน: ${fmt(gRows.filter(g=>g.d>=100).length)})`;
   const cb=countBy(gRows.filter(g=>g.d!=null),g=>bucketOf(g.d).k); cb.ALL=gRows.length; cb.LONG=gRows.filter(g=>g.d>=100).length;
   setButtons(gBucketBtns, v=>v===G.bucket, Object.assign({G:0,O:0,R:0,Y:0},cb));
   const list = gRows.filter(g=>gBucketOk(g) && (!G.q || g.cn.toUpperCase().includes(G.q)))
