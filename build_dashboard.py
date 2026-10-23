@@ -125,6 +125,8 @@ def load_staying_rows(src):
     df = pd.read_excel(src)
     # ตัดแถวสรุปท้ายไฟล์ / แถวว่าง
     df = df[df["Location"].notna() & df["Size/Type"].notna()].copy()
+    # ตัดตู้ที่จัดปล่อยแล้ว (Move Code OEV / OEP / OEW) ออกจากข้อมูล STAYING
+    df = df[~df["Move Code"].astype(str).str.strip().isin(RELEASE_MOVES)]
 
     rows = []
     for r in df.itertuples(index=False):

@@ -331,7 +331,7 @@ const YARD_LOCS = new Set(YARDS.flatMap(y=>y.locs));
 const OE_MOVES = new Set(["OEV","OEP","OEW"]);
 const isLong = r => r.d>=100 && !OE_MOVES.has(r.mc);
 const inList = r => YARD_LOCS.has(r.loc) && !OE_MOVES.has(r.mc);
-const GROUPS = ["AV","DMG","OTHER"];
+const GROUPS = ["AV","DMG"].concat(DATA_RAW.some(r=>r.gp==="OTHER")?["OTHER"]:[]);
 const fmt = n => n.toLocaleString("en-US");
 const pct = (a,b) => b ? Math.round(a/b*100) : 0;
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -368,7 +368,7 @@ function fillSelect(el, opts, allLabel){
 }
 
 btnGroup(fArea, [["ALL","ทั้งหมด"],["BKK","BKK"],["LCH","LCH"]], v=>{S.area=v;S.loc="ALL";render();});
-btnGroup(fGroup, [["ALL","ทั้งหมด"],["AV","AV"],["DMG","DMG"],["OTHER","OTHER"]], v=>{S.group=v;render();});
+btnGroup(fGroup, [["ALL","ทั้งหมด"],["AV","AV"],["DMG","DMG"],...(GROUPS.includes("OTHER")?[["OTHER","OTHER"]]:[])], v=>{S.group=v;render();});
 btnGroup(fSize, [["ALL","ทั้งหมด"],["REEFER","❄ Reefer (22RE+45RE)"],...sizes.map(s=>[s,s])], v=>{
   if(v==="ALL") S.sizes.clear();
   else if(v==="REEFER"){ const both=REEFER.every(x=>S.sizes.has(x))&&S.sizes.size===2; S.sizes=new Set(both?[]:REEFER); }
