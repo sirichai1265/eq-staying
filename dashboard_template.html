@@ -223,10 +223,13 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
   <!-- ===== LONG STAYING ===== -->
   <section class="page" id="pg-long">
     <div class="card mb">
-      <h2 id="ldTitle">LONG STAYING รายวัน</h2>
+      <div class="tablebar" style="margin-bottom:4px"><h2 id="ldTitle" style="margin:0">LONG STAYING รายวัน</h2><button class="btn" id="ldToggle">▸ แสดงรายการ</button></div>
+      <p class="hint" id="ldSum"></p>
+      <div id="ldBody" style="display:none">
       <p class="hint">ต้นวัน = STAYING ล่าสุดใน STOCK DAILY ที่ไม่เกินวันนั้น (อายุ ≥100 วัน ณ วันนั้น · ไม่รวม OEV/OEP/OEW) · ปล่อยออก = GATE OUT ตามรีพอตลาน · คลิกแถวเพื่อดูตู้ที่ปล่อยออกวันนั้น</p>
       <div class="scroll" style="max-height:460px" id="ldTable"></div>
       <div id="ldGone" style="margin-top:12px"></div>
+      </div>
     </div>
     <div class="card alert">
       <div class="tablebar">
@@ -526,6 +529,7 @@ function renderLongDaily(){
   const cols = locs.concat(extra);
   const mx = Math.max(...LONGDAILY.map(x=>x.start));
   ldTitle.textContent = `LONG STAYING รายวัน ${dfull(LONGDAILY[0].d)} – ${dfull(LONGDAILY[LONGDAILY.length-1].d)}`;
+  { const l=LONGDAILY[LONGDAILY.length-1]; ldSum.innerHTML = `ล่าสุด ${dfull(l.d)}: ต้นวัน <b>${fmt(l.start)}</b> · ปล่อยออก <b style="color:var(--rel)">${fmt(l.out)}</b> · คงเหลือ <b class="dr">${fmt(l.end)}</b> · รวมปล่อยออกทั้งช่วง <b style="color:var(--rel)">${fmt(LONGDAILY.reduce((s,x)=>s+x.out,0))}</b> ตู้ (${LONGDAILY.length} วัน)`; }
   ldTable.innerHTML = `<table><tr><th>วันที่</th><th>STAYING ที่ใช้</th><th class="num">LONG ต้นวัน</th><th class="num">ปล่อยออก</th><th class="num">คงเหลือ</th><th></th>${cols.map(l=>`<th class="num">${l}</th>`).join("")}</tr>` +
     LONGDAILY.slice().reverse().map(x=>`<tr style="cursor:pointer${x.d===ldSel?";font-weight:700":""}" data-d="${x.d}"><td>${dfull(x.d)}${x.d===ldSel?" ✓":""}</td><td class="muted">${dfull(x.snap)}</td><td class="num">${fmt(x.start)}</td><td class="num"><b style="color:var(--rel)">${x.out?fmt(x.out):"·"}</b></td><td class="num dr">${fmt(x.end)}</td>
       <td><div class="stack" style="min-width:110px" title="คงเหลือ ${x.end} · ปล่อยออก ${x.out}"><span style="width:${x.end/mx*100}%;background:var(--r)"></span><span style="width:${x.out/mx*100}%;background:var(--rel)"></span></div></td>
@@ -536,6 +540,8 @@ function renderLongDaily(){
     x.gone.map((r,i)=>`<tr><td class="muted">${i+1}</td><td>${r.loc}</td><td class="mono"><b>${esc(r.cn)}</b></td><td>${r.st}</td><td class="num">${dayCell(r.d)}</td><td>${r.eq}</td><td>${r.mc}</td><td><b style="color:var(--rel)">${dmy(x.d)} ${r.gt}</b></td><td>${esc(r.yard)}</td></tr>`).join("") + `</table></div>`
     : (x ? `<div class="muted">ไม่มีตู้ค้างนานที่ปล่อยออกวันที่ ${dfull(x.d)}</div>` : "");
 }
+let ldOpen=false;
+ldToggle.onclick=()=>{ ldOpen=!ldOpen; ldBody.style.display=ldOpen?"":"none"; ldToggle.textContent=ldOpen?"▾ ซ่อนรายการ":"▸ แสดงรายการ"; };
 ldTable.onclick=e=>{const tr=e.target.closest("tr[data-d]"); if(!tr) return; ldSel=tr.dataset.d; renderLongDaily();};
 
 // ===== แบ่งกลุ่มละ 50 วัน (0–49, 50–99, 100–149, …) =====
