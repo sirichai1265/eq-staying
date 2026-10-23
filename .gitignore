@@ -17,3 +17,5 @@ make_yard_drafts.ps1
 .current_staying
 GATE OUT/
 LONG STAYING/
+run_yard_emails.cmd
+yard_emails_auto.log
