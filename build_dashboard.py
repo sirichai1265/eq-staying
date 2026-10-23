@@ -50,7 +50,17 @@ def day_folders():
     return sorted(d for d in os.listdir(HERE) if DAY_DIR.fullmatch(d) and os.path.isdir(os.path.join(HERE, d)))
 
 
+CURRENT = os.path.join(HERE, ".current_staying")   # ไฟล์ STAYING ที่ dashboard ใช้อยู่ (ใช้ต่อเมื่อรันแบบไม่ใส่ไฟล์)
+
+
 def latest_archived_staying():
+    try:
+        with open(CURRENT, encoding="utf-8") as f:
+            p = os.path.join(HERE, f.read().strip())
+        if os.path.isfile(p):
+            return p
+    except OSError:
+        pass
     for d in reversed(day_folders()):
         files = xls_in(os.path.join(HERE, d), gate=False)
         if files:
@@ -173,7 +183,11 @@ def build_staying(src, archive_it=True, write_index=True):
             f.write(html)
         print(f"Output : {OUT}")
     if archive_it:
-        archive(src, rows, meta)
+        src = archive(src, rows, meta)
+    if write_index:
+        with open(CURRENT, "w", encoding="utf-8") as f:
+            f.write(os.path.relpath(os.path.abspath(src), HERE))
+        write_gate_summaries(rows, meta, gate)
 
 
 # ===================== GATE OUT (ตู้ปล่อยออก) =====================
@@ -233,7 +247,7 @@ def gateout_rows(path):
 # ===== ตู้ปล่อยออกจากรีพอตลาน (GATE MOVE DATABASE) =====
 GATE_DB = os.path.join(os.path.dirname(HERE), "GATE MOVE", "GATE MOVE DATABASE.xlsx")
 STOCK_DAILY = os.path.join(os.path.dirname(HERE), "STOCK DAILY")
-GATE_FROM, GATE_TO = "2026-10-01", "2026-10-22"     # ช่วงวันที่เก็บข้อมูลตู้ปล่อยออก
+GATE_FROM, GATE_TO = "2026-10-01", "9999-12-31"     # ช่วงวันที่เก็บข้อมูลตู้ปล่อยออก (ถึงวันล่าสุดในฐานข้อมูล)
 SNAP_CACHE = os.path.join(HERE, ".staying_cache.json")
 
 
@@ -514,6 +528,163 @@ def write_gateout_xlsx(rows, day, source, path):
     return counts
 
 
+def iso_week(d):
+    """'2026-10-22' -> ('2026-W43', '19/10–25/10')"""
+    from datetime import timedelta
+    dt = datetime.strptime(d, "%Y-%m-%d")
+    y, w, wd = dt.isocalendar()
+    mon = dt - timedelta(days=wd - 1)
+    sun = mon + timedelta(days=6)
+    return f"{y}-W{w:02d}", f"{mon:%d/%m}–{sun:%d/%m}"
+
+
+def write_gate_summaries(rows, meta, gate):
+    """ตัดยอดและสรุปตู้ปล่อยออกรายวัน
+    - EQ STAYING/GATE OUT/GATE_OUT_Summary.xlsx : รายสัปดาห์ / รายวัน (พร้อมยอดคงเหลือ) / แต่ละลาน / รายการ
+    - EQ STAYING/<วันที่>/GATE_OUT_<วันที่>.xlsx : สรุปและรายการตู้ปล่อยออกของวันนั้น"""
+    if not gate:
+        return
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+
+    thin = Side(style="thin", color="BFC5CE")
+    border = Border(top=thin, left=thin, bottom=thin, right=thin)
+    base_cn = {r["cn"]: r for r in rows}
+    long_base = {r["cn"] for r in rows if r["d"] >= 100 and r["mc"] not in RELEASE_MOVES}
+    # วันที่ตัดยอด (ปล่อยออกครั้งแรกหลังวันข้อมูล STAYING และไม่กลับเข้าลาน)
+    cut_day = {}
+    for g in gate:
+        if g["cn"] in base_cn and g["gd"] >= meta["lastEq"] and not g["back"]:
+            cut_day[g["cn"]] = min(cut_day.get(g["cn"], "9999"), g["gd"])
+    days = sorted({g["gd"] for g in gate})
+    yards = sorted({(g["loc"], g["yard"]) for g in gate})
+
+    def bucket_counts(lst):
+        k = [g for g in lst if g["d"] is not None]
+        return [sum(1 for g in k if lo <= g["d"] <= hi) for _, lo, hi, _, _ in DAY_BUCKETS]
+
+    def stats(lst):
+        k = [g["d"] for g in lst if g["d"] is not None]
+        return [len(lst)] + bucket_counts(lst) + [round(sum(k) / len(k), 1) if k else "", max(k) if k else ""]
+
+    def table(ws, start, title, head, data, total=None):
+        ws.cell(start, 1, title).font = Font(bold=True, size=12)
+        r0 = start + 1
+        for j, h in enumerate(head, 1):
+            c = ws.cell(r0, j, h)
+            c.font = Font(bold=True, color="FFFFFF")
+            c.fill = PatternFill("solid", fgColor="1F5FBF")
+            c.alignment = Alignment(horizontal="center", wrap_text=True)
+            c.border = border
+        for b, j in zip(DAY_BUCKETS, range(len(head))):
+            pass
+        for i, vals in enumerate(data + ([total] if total else []), 1):
+            for j, v in enumerate(vals, 1):
+                c = ws.cell(r0 + i, j, v)
+                c.border = border
+                if total and i == len(data) + 1:
+                    c.font = Font(bold=True)
+                    c.fill = PatternFill("solid", fgColor="EEF1F5")
+        return r0 + len(data) + (1 if total else 0) + 2
+
+    def list_sheet(wb, name, lst):
+        sh = wb.create_sheet(name)
+        head = ["No.", "Gate Date", "Time", "ลาน", "Location", "Area", "วันค้าง", "Container No", "Size/Type",
+                "EQ Date (เข้าลาน)", "Move ก่อนปล่อย", "Group", "Type"]
+        sh.append(head)
+        for c in sh[1]:
+            c.font = Font(bold=True, color="FFFFFF")
+            c.fill = PatternFill("solid", fgColor="0F766E")
+            c.border = border
+        fills = {b[0]: PatternFill("solid", fgColor=b[3]) for b in DAY_BUCKETS}
+        for i, g in enumerate(sorted(lst, key=lambda x: (-(x["d"] if x["d"] is not None else -1), x["gd"])), 1):
+            sh.append([i, g["gd"], g["gt"], g["yard"], g["loc"], g["ar"], g["d"] if g["d"] is not None else "",
+                       g["cn"], g["st"], g["eq"], g["pmc"], g["pgp"], g["typ"]])
+            b = next((b for b in DAY_BUCKETS if g["d"] is not None and b[1] <= g["d"] <= b[2]), None)
+            for c in sh[i + 1]:
+                c.border = border
+                if b:
+                    c.fill = fills[b[0]]
+            if b:
+                sh.cell(i + 1, 7).font = Font(bold=True, color=b[4])
+        for col, w in zip("ABCDEFGHIJKLM", [6, 11, 7, 11, 9, 6, 8, 15, 9, 15, 13, 7, 10]):
+            sh.column_dimensions[col].width = w
+        sh.freeze_panes = "A2"
+        sh.auto_filter.ref = f"A1:M{len(lst) + 1}"
+
+    bhead = [b[0] for b in DAY_BUCKETS]
+    shead = ["ปล่อยออก"] + bhead + ["เฉลี่ย (วัน)", "Max"]
+
+    # ---------- ภาพรวมทั้งช่วง ----------
+    outdir = os.path.join(HERE, "GATE OUT")
+    os.makedirs(outdir, exist_ok=True)
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "สรุป"
+    ws["A1"] = f"สรุปตู้ปล่อยออก (GATE OUT จากรีพอตลาน) {days[0]} – {days[-1]}"
+    ws["A1"].font = Font(bold=True, size=14)
+    ws["A2"] = (f"ยอดตั้งต้น: {meta['source']} ({len(rows):,} ตู้ · LONG STAYING ≥100 วัน {len(long_base):,} ตู้) · "
+                f"สร้างเมื่อ {meta['generated']}")
+    ws["A2"].font = Font(color="6B7684")
+    weeks = {}
+    for d in days:
+        weeks.setdefault(iso_week(d), []).append(d)
+    nxt = table(ws, 4, "รายสัปดาห์ (ISO จันทร์–อาทิตย์)", ["สัปดาห์", "ช่วงวันที่", "จำนวนวัน"] + shead,
+                [[w, rng, len(ds)] + stats([g for g in gate if g["gd"] in ds]) for (w, rng), ds in weeks.items()],
+                ["รวม", "", len(days)] + stats(gate))
+    daily = []
+    for d in days:
+        cut = sum(1 for v in cut_day.values() if v <= d)
+        cut_long = sum(1 for cn, v in cut_day.items() if v <= d and cn in long_base)
+        daily.append([d, iso_week(d)[0]] + stats([g for g in gate if g["gd"] == d]) +
+                     [cut, len(rows) - cut, len(long_base) - cut_long])
+    nxt = table(ws, nxt, "รายวัน + ตัดยอด (ยอดคงเหลือจากยอดตั้งต้น)",
+                ["วันที่ปล่อย", "สัปดาห์"] + shead + ["ตัดยอดสะสม", "คงเหลือในลาน", "LONG ≥100 คงเหลือ"], daily)
+    table(ws, nxt, "แต่ละลาน", ["ลาน", "Location"] + shead,
+          [[y, l] + stats([g for g in gate if g["loc"] == l]) for l, y in yards], ["รวม", ""] + stats(gate))
+    ws.column_dimensions["A"].width = 14
+    ws.column_dimensions["B"].width = 13
+    for col in "CDEFGHIJKLMN":
+        ws.column_dimensions[col].width = 11
+    list_sheet(wb, "ตู้ปล่อยออกทั้งหมด", gate)
+    list_sheet(wb, "ค้าง ≥100 วัน", [g for g in gate if g["d"] is not None and g["d"] >= 100])
+    path = os.path.join(outdir, "GATE_OUT_Summary.xlsx")
+    try:
+        wb.save(path)
+        print(f"Gate summary: {path}")
+    except PermissionError:
+        print(f"!! ไฟล์เปิดอยู่ ไม่ได้บันทึก: {path}")
+
+    # ---------- รายวัน: <วันที่>/GATE_OUT_<วันที่>.xlsx ----------
+    for row in daily:
+        d = row[0]
+        lst = [g for g in gate if g["gd"] == d]
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "สรุป"
+        ws["A1"] = f"ตู้ปล่อยออกจากลาน วันที่ {d[8:10]}/{d[5:7]}/{d[:4]} ({iso_week(d)[0]})"
+        ws["A1"].font = Font(bold=True, size=14)
+        ws["A2"] = (f"ปล่อยออก {len(lst):,} ตู้ · ตัดยอดสะสม {row[-3]:,} · คงเหลือในลาน {row[-2]:,} ตู้ · "
+                    f"LONG STAYING ≥100 วันคงเหลือ {row[-1]:,} ตู้ (ยอดตั้งต้น {meta['source']})")
+        ws["A2"].font = Font(color="6B7684")
+        table(ws, 4, "แต่ละลาน", ["ลาน", "Location"] + shead,
+              [[y, l] + stats([g for g in lst if g["loc"] == l]) for l, y in yards if any(g["loc"] == l for g in lst)],
+              ["รวม", ""] + stats(lst))
+        ws.column_dimensions["A"].width = 14
+        for col in "BCDEFGHI":
+            ws.column_dimensions[col].width = 11
+        list_sheet(wb, "ตู้ปล่อยออก", lst)
+        folder = os.path.join(HERE, d)
+        os.makedirs(folder, exist_ok=True)
+        try:
+            wb.save(os.path.join(folder, f"GATE_OUT_{d}.xlsx"))
+        except PermissionError:
+            print(f"!! ไฟล์เปิดอยู่ ไม่ได้บันทึก: GATE_OUT_{d}.xlsx")
+    last = daily[-1]
+    print(f"  ตัดยอดถึง {last[0]}: ปล่อยออกสะสม {last[-3]:,} · คงเหลือในลาน {last[-2]:,} · LONG ≥100 คงเหลือ {last[-1]:,}"
+          f" · ไฟล์รายวัน {len(daily)} วัน")
+
+
 def archive(src, rows, meta):
     """เก็บไฟล์ของรอบนี้ไว้ในโฟลเดอร์วันที่ เช่น EQ STAYING/2026-10-05/
     (ถ้าไฟล์ต้นฉบับอยู่ในโฟลเดอร์วันที่อยู่แล้ว จะใช้โฟลเดอร์นั้น)"""
@@ -534,6 +705,7 @@ def archive(src, rows, meta):
     print(f"  - {os.path.basename(src)} (ไฟล์ต้นฉบับ)")
     print(f"  - EQ_STAYING_Dashboard_{day}.html")
     print(f"  - EQ_STAYING_Summary_{day}.xlsx  " + " · ".join(f"{k}: {v:,}" for k, v in counts.items()))
+    return dest_src
 
 
 if __name__ == "__main__":

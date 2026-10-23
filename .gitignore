@@ -14,3 +14,5 @@ yard_contacts.json
 yard_emails.py
 make_yard_drafts.ps1
 .staying_cache.json
+.current_staying
+GATE OUT/
