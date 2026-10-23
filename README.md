@@ -5,14 +5,14 @@ Dashboard ติดตามตู้ AV / DMG, LONG STAYING และตู้�
 แท็บในหน้าเว็บ
 - **📊 ภาพรวม** — KPI, กราฟอายุตู้ (Aging) ตาม Area, สรุป Area × Group, Aging ตาม Location
 - **⚠ LONG STAYING** — ตู้ ≥100 วัน แบ่งกลุ่มละ 50 วัน, ค้นหาเบอร์ตู้, Export Excel
-- **🚚 ตู้ปล่อยออก** — ตู้ที่ปล่อยออก (OEP / OEV / OEW) พร้อมวันค้างก่อนปล่อย, สรุปรายวัน, Export Excel
-- **📋 รายการตู้** — ตู้ทั้งหมดในลาน, ค้นหา, Export CSV
+- **🚚 ตู้ปล่อยออก** — GATE OUT จากรีพอตลาน (`GATE MOVE\GATE MOVE DATABASE.xlsx`) ช่วง 1/10–22/10 พร้อมวันค้างก่อนปล่อย, สรุปรายวัน, Export Excel
 
 เกณฑ์
 - **AV** = Move Code IEC, IED, IEP, IER, IEW, VED · **DMG** = OER · **OTHER** = Move Code อื่น
 - **Days**: 0–30 เขียว · 31–99 ส้ม · 100–199 แดง · 200+ แดงไฮไลท์เหลือง
 - **Area**: แบ่งจาก Location โดย LCH54 / LCH55 นับเป็น BKK
-- **วันค้างก่อนปล่อย** = Gate Date (ไฟล์ GATE OUT) − EQ Date (จากไฟล์ STAYING ที่เก็บไว้ วันเดียวกันหรือก่อนหน้า)
+- **วันค้างก่อนปล่อย** = Gate Date − EQ Date (จากไฟล์ STAYING รายวันใน `STOCK DAILY` / โฟลเดอร์วันที่ ฉบับล่าสุดที่ไม่เกินวันปล่อย)
+- ช่วงวันที่ของตู้ปล่อยออกกำหนดที่ `GATE_FROM` / `GATE_TO` ใน `build_dashboard.py`
 - ตู้ในรายการ STAYING ที่ปล่อยออกแล้วจะมีป้าย "ปล่อยแล้ว"
 
 ## ลิงก์

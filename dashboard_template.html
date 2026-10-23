@@ -228,8 +228,9 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
   <!-- ===== ตู้ปล่อยออก ===== -->
   <section class="page" id="pg-gate">
     <div class="card mb filters">
+      <p class="hint" style="margin:0">ข้อมูลจากรีพอต GATE OUT ของลาน (SMART BKK · BC · HAST · CELLO · PW) <span id="gRange"></span></p>
       <div class="frow"><span class="flabel">วันที่ปล่อย</span><div id="gDate" class="frow"></div></div>
-      <div class="frow"><span class="flabel">Move</span><div id="gMove" class="frow"></div></div>
+      <div class="frow"><span class="flabel">ลาน</span><div id="gMove" class="frow"></div></div>
       <div class="frow"><span class="flabel">Area</span><div id="gArea" class="frow"></div></div>
     </div>
     <div class="kpis mb" id="gKpis"></div>
@@ -310,7 +311,7 @@ const sizes = Object.entries(DATA.reduce((m,r)=>(m[r.st]=(m[r.st]||0)+1,m),{})).
 // ตู้ที่ปล่อยออกแล้วหลังวันที่ของข้อมูล STAYING
 const RELEASED = new Map();
 GATE.forEach(g=>{ if(g.gd>=META.lastEq && !RELEASED.has(g.cn)) RELEASED.set(g.cn,g); });
-const relBadge = cn => { const g=RELEASED.get(cn); return g?`<span class="rel" title="ปล่อยออก ${g.mv} ${g.gd} ${g.gt}">ปล่อยแล้ว ${g.mv} ${dmy(g.gd)}</span>`:""; };
+const relBadge = cn => { const g=RELEASED.get(cn); return g?`<span class="rel" title="GATE OUT ${g.yard} ${g.gd} ${g.gt}">ปล่อยแล้ว ${dmy(g.gd)}</span>`:""; };
 
 const S = { area:"ALL", group:"ALL", sizes:new Set(), bucket:"ALL", byFrom:years[0], byTo:years[years.length-1],
             loc:"ALL", mc:"ALL", rf:"ALL", q:"", page:0, sortKey:"d", sortDir:-1 };
@@ -528,18 +529,20 @@ function renderMain(rows){
 tMain.onclick=e=>{const th=e.target.closest("th[data-k]"); if(!th) return; const k=th.dataset.k; if(S.sortKey===k) S.sortDir*=-1; else {S.sortKey=k;S.sortDir=k==="d"||k==="by"?-1:1;} renderMain(DATA.filter(r=>pass(r)));};
 pager.onclick=e=>{const b=e.target.closest("button[data-p]"); if(!b) return; S.page+=b.dataset.p==="next"?1:-1; renderMain(DATA.filter(r=>pass(r))); mainWrap.scrollIntoView({block:"start"});};
 
-// ===== ตู้ปล่อยออก (Gate Out: OEP / OEV / OEW) =====
+// ===== ตู้ปล่อยออก (GATE OUT จากรีพอตลาน) =====
 const GDATES = uniq(GATE.map(g=>g.gd)).reverse();
 const G = { date: GDATES[0]||"ALL", move:"ALL", area:"ALL", bucket:"ALL", q:"" };
 let gRows=[];
 function gPass(g, ex){
   if(ex!=="date" && G.date!=="ALL" && g.gd!==G.date) return false;
-  if(ex!=="move" && G.move!=="ALL" && g.mv!==G.move) return false;
+  if(ex!=="move" && G.move!=="ALL" && g.loc!==G.move) return false;
   if(ex!=="area" && G.area!=="ALL" && g.ar!==G.area) return false;
   return true;
 }
 btnGroup(gDate, [["ALL","ทุกวัน"],...GDATES.map(d=>[d,dmy(d)+"/"+d.slice(0,4)])], v=>{G.date=v;renderGate();});
-btnGroup(gMove, [["ALL","ทั้งหมด"],["OEP","OEP"],["OEV","OEV"],["OEW","OEW"]], v=>{G.move=v;renderGate();});
+const GYARDS = uniq(GATE.map(g=>g.loc)).map(l=>[l, `${GATE.find(g=>g.loc===l).yard} (${l})`]);
+btnGroup(gMove, [["ALL","ทั้งหมด"],...GYARDS], v=>{G.move=v;renderGate();});
+gRange.textContent = GDATES.length ? `· ${dmy(GDATES[GDATES.length-1])}/${GDATES[0].slice(0,4)} – ${dmy(GDATES[0])}/${GDATES[0].slice(0,4)} (${GDATES.length} วัน)` : "";
 btnGroup(gArea, [["ALL","ทั้งหมด"],["BKK","BKK"],["LCH","LCH"]], v=>{G.area=v;renderGate();});
 btnGroup(gBucketBtns, [["ALL","ทั้งหมด"],...BUCKETS.map(b=>[b.k,`<span class="${b.cls}">${b.l} วัน</span>`]),["LONG","≥100 วัน"]], v=>{G.bucket=v;renderGateTable();});
 gQ.oninput=()=>{G.q=gQ.value.trim().toUpperCase();renderGateTable();};
@@ -550,7 +553,7 @@ function renderGate(){
   if(!GATE.length){ gKpis.innerHTML=`<div class="card empty" style="grid-column:1/-1">ยังไม่มีข้อมูลไฟล์ GATE OUT</div>`; gBuckets.innerHTML=gDaily.innerHTML=gTable.innerHTML=""; return; }
   const rows = GATE.filter(g=>gPass(g));
   setButtons(gDate, v=>v===G.date, Object.assign(countBy(GATE.filter(g=>gPass(g,"date")),g=>g.gd),{ALL:GATE.filter(g=>gPass(g,"date")).length}));
-  const mvRows=GATE.filter(g=>gPass(g,"move")); setButtons(gMove, v=>v===G.move, Object.assign({OEP:0,OEV:0,OEW:0},countBy(mvRows,g=>g.mv),{ALL:mvRows.length}));
+  const mvRows=GATE.filter(g=>gPass(g,"move")); setButtons(gMove, v=>v===G.move, Object.assign(Object.fromEntries(GYARDS.map(([l])=>[l,0])),countBy(mvRows,g=>g.loc),{ALL:mvRows.length}));
   const arRows=GATE.filter(g=>gPass(g,"area")); setButtons(gArea, v=>v===G.area, Object.assign({BKK:0,LCH:0},countBy(arRows,g=>g.ar),{ALL:arRows.length}));
   gRows = rows;
   const known = rows.filter(g=>g.d!=null);
@@ -558,7 +561,7 @@ function renderGate(){
   const top = known[0] ? known.reduce((a,b)=>b.d>a.d?b:a) : null;
   const long = known.filter(g=>g.d>=100).length;
   const kp=[
-    {l:G.date==="ALL"?"ปล่อยออกทั้งหมด":`ปล่อยออก ${dmy(G.date)}`,v:fmt(rows.length),c:"var(--rel)",s:["OEP","OEV","OEW"].map(m=>`${m} ${fmt(rows.filter(g=>g.mv===m).length)}`).join(" · ")},
+    {l:G.date==="ALL"?"ปล่อยออกทั้งหมด":`ปล่อยออก ${dmy(G.date)}`,v:fmt(rows.length),c:"var(--rel)",s:GYARDS.map(([l])=>`${l} ${fmt(rows.filter(g=>g.loc===l).length)}`).join(" · ")},
     {l:"วันค้างเฉลี่ยก่อนปล่อย",v:avg,c:"var(--accent)",s:"วัน"},
     {l:"ค้างนานที่สุด",v:top?top.d:"-",c:top?bucketOf(top.d).c:"var(--line)",s:top?`${top.cn} · ${top.st}`:"",cls:top?bucketOf(top.d).cls:""},
     {l:"ค้าง ≥100 วัน ที่ปล่อยออก",v:fmt(long),c:"var(--r)",cls:"dr",s:`${pct(long,known.length)}% ของตู้ที่ปล่อย`},
@@ -590,8 +593,8 @@ function renderGateTable(){
     .slice().sort((a,b)=>(b.d??-1)-(a.d??-1) || (b.gd+b.gt).localeCompare(a.gd+a.gt));
   gTableRows = list;
   const showDate = G.date==="ALL";
-  gTable.innerHTML = list.length ? `<table><tr><th>#</th>${showDate?"<th>Gate Date</th>":""}<th>Time</th><th>Move</th><th>Area</th><th>Location</th><th class="num">วันค้าง</th><th>Container No</th><th>Size/Type</th><th>EQ Date (เข้าลาน)</th><th>Move ก่อนปล่อย</th><th>Built Year</th><th>POD</th><th>Voyage</th></tr>` +
-    list.map((g,i)=>(g.d!=null?bandHead(list,i,0,showDate?14:13):"")+`<tr class="${g.d>=200?"rowy":g.d>=100?"rowr":""}"><td class="muted">${i+1}</td>${showDate?`<td>${g.gd}</td>`:""}<td>${g.gt}</td><td><span class="mv">${g.mv}</span></td><td>${g.ar}</td><td>${g.loc}</td><td class="num">${dayCell(g.d)}</td><td class="mono"><b>${esc(g.cn)}</b></td><td>${g.st}</td><td>${g.eq||'<span class="muted">ไม่พบ</span>'}</td><td>${g.pmc?`${g.pmc} <span class="gp ${g.pgp}">${g.pgp}</span>`:""}</td><td>${g.by??""}</td><td>${esc(g.pod)}</td><td>${esc(g.voy)}</td></tr>`).join("") + `</table>`
+  gTable.innerHTML = list.length ? `<table><tr><th>#</th>${showDate?"<th>Gate Date</th>":""}<th>Time</th><th>ลาน</th><th>Location</th><th>Area</th><th class="num">วันค้าง</th><th>Container No</th><th>Size/Type</th><th>EQ Date (เข้าลาน)</th><th>Move ก่อนปล่อย</th><th>Type</th></tr>` +
+    list.map((g,i)=>(g.d!=null?bandHead(list,i,0,showDate?12:11):"")+`<tr class="${g.d>=200?"rowy":g.d>=100?"rowr":""}"><td class="muted">${i+1}</td>${showDate?`<td>${g.gd}</td>`:""}<td>${g.gt}</td><td><span class="mv">${esc(g.yard)}</span></td><td>${g.loc}</td><td>${g.ar}</td><td class="num">${dayCell(g.d)}</td><td class="mono"><b>${esc(g.cn)}</b></td><td>${g.st}</td><td>${g.eq||'<span class="muted">ไม่พบ</span>'}</td><td>${g.pmc?`${g.pmc} <span class="gp ${g.pgp}">${g.pgp}</span>`:""}</td><td>${esc(g.typ)}</td></tr>`).join("") + `</table>`
     : `<div class="empty">ไม่มีตู้ปล่อยออกในตัวกรองนี้</div>`;
 }
 
@@ -631,14 +634,14 @@ xlsxBtn.onclick=()=>exportXlsx(xlsxBtn,"LONG STAYING",[
     {header:"Days",key:"d",width:8},{header:"Aging",key:"ag",width:10},{header:"Container No",key:"cn",width:16},
     {header:"Size/Type",key:"st",width:10},{header:"Group",key:"gp",width:8},{header:"Move Code",key:"mc",width:11},
     {header:"EQ Date",key:"eq",width:12},{header:"Built Year",key:"by",width:11},{header:"RF Brand",key:"rf",width:13},{header:"ปล่อยออก",key:"rel",width:18}],
-  alertRows.map((r,i)=>{const g=RELEASED.get(r.cn); return {i:i+1,ar:r.ar,loc:r.loc,d:r.d,ag:bucketOf(r.d).l+" วัน",cn:r.cn,st:r.st,gp:r.gp,mc:r.mc,eq:r.eq,by:r.by??"",rf:r.rf,rel:g?`${g.mv} ${g.gd}`:""};}),
+  alertRows.map((r,i)=>{const g=RELEASED.get(r.cn); return {i:i+1,ar:r.ar,loc:r.loc,d:r.d,ag:bucketOf(r.d).l+" วัน",cn:r.cn,st:r.st,gp:r.gp,mc:r.mc,eq:r.eq,by:r.by??"",rf:r.rf,rel:g?`${g.yard} ${g.gd} ${g.gt}`:""};}),
   `LONG_STAYING_${META.lastEq}.xlsx`);
 gXlsx.onclick=()=>exportXlsx(gXlsx,"GATE OUT",[
-    {header:"#",key:"i",width:6},{header:"Gate Date",key:"gd",width:12},{header:"Time",key:"gt",width:7},{header:"Move",key:"mv",width:7},
+    {header:"#",key:"i",width:6},{header:"Gate Date",key:"gd",width:12},{header:"Time",key:"gt",width:7},{header:"ลาน",key:"yard",width:11},
     {header:"Area",key:"ar",width:7},{header:"Location",key:"loc",width:10},{header:"วันค้าง",key:"d",width:9},{header:"Aging",key:"ag",width:10},
     {header:"Container No",key:"cn",width:16},{header:"Size/Type",key:"st",width:10},{header:"EQ Date (เข้าลาน)",key:"eq",width:16},
-    {header:"Move ก่อนปล่อย",key:"pmc",width:14},{header:"Group",key:"pgp",width:8},{header:"Built Year",key:"by",width:10},{header:"POD",key:"pod",width:9},{header:"Voyage",key:"voy",width:9}],
-  gTableRows.map((g,i)=>({i:i+1,gd:g.gd,gt:g.gt,mv:g.mv,ar:g.ar,loc:g.loc,d:g.d??"",ag:g.d!=null?bucketOf(g.d).l+" วัน":"",cn:g.cn,st:g.st,eq:g.eq,pmc:g.pmc,pgp:g.pgp,by:g.by??"",pod:g.pod,voy:g.voy})),
+    {header:"Move ก่อนปล่อย",key:"pmc",width:14},{header:"Group",key:"pgp",width:8},{header:"Type",key:"typ",width:10}],
+  gTableRows.map((g,i)=>({i:i+1,gd:g.gd,gt:g.gt,yard:g.yard,ar:g.ar,loc:g.loc,d:g.d??"",ag:g.d!=null?bucketOf(g.d).l+" วัน":"",cn:g.cn,st:g.st,eq:g.eq,pmc:g.pmc,pgp:g.pgp,typ:g.typ})),
   `GATE_OUT_${G.date==="ALL"?"ALL":G.date}.xlsx`);
 
 csvBtn.onclick=()=>{

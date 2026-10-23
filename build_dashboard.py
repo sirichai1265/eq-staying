@@ -230,18 +230,83 @@ def gateout_rows(path):
     return out
 
 
-def load_gateout_history():
-    rows = []
+# ===== ตู้ปล่อยออกจากรีพอตลาน (GATE MOVE DATABASE) =====
+GATE_DB = os.path.join(os.path.dirname(HERE), "GATE MOVE", "GATE MOVE DATABASE.xlsx")
+STOCK_DAILY = os.path.join(os.path.dirname(HERE), "STOCK DAILY")
+GATE_FROM, GATE_TO = "2026-10-01", "2026-10-22"     # ช่วงวันที่เก็บข้อมูลตู้ปล่อยออก
+SNAP_CACHE = os.path.join(HERE, ".staying_cache.json")
+
+
+def staying_snapshots():
+    """ไฟล์ STAYING รายวัน: {วันที่: path} จาก STOCK DAILY\\<m-d>\\ และโฟลเดอร์วันที่ใน EQ STAYING"""
+    snaps = {}
+    if os.path.isdir(STOCK_DAILY):
+        for d in os.listdir(STOCK_DAILY):
+            m = re.fullmatch(r"(\d{1,2})-(\d{1,2})", d)
+            if not m:
+                continue
+            files = xls_in(os.path.join(STOCK_DAILY, d), gate=False)
+            if files:
+                snaps[f"2026-{int(m.group(1)):02d}-{int(m.group(2)):02d}"] = files[-1]
     for d in day_folders():
-        for f in xls_in(os.path.join(HERE, d), gate=True):
-            rows += gateout_rows(f)
-    seen, uniq_rows = set(), []
-    for r in sorted(rows, key=lambda x: (x["gd"], x["gt"]), reverse=True):
-        k = (r["cn"], r["gd"], r["gt"])
-        if k not in seen:
-            seen.add(k)
-            uniq_rows.append(r)
-    return uniq_rows
+        files = xls_in(os.path.join(HERE, d), gate=False)
+        if files:
+            snaps.setdefault(d, files[-1])
+    return dict(sorted(snaps.items()))
+
+
+def load_snapshot(path, cache):
+    key = f"{path}|{os.path.getmtime(path)}"
+    if key not in cache:
+        cols = ["Container No", "EQ Date", "Move Code"]
+        s = pd.read_excel(path, usecols=cols).dropna(subset=["Container No", "EQ Date"])[cols]
+        cache[key] = {str(cn).strip(): [str(eq)[:10], clean(mc)] for cn, eq, mc in s.itertuples(index=False)}
+    return cache[key]
+
+
+def fmt_time(v):
+    """'08:19:05' / '9.59' / '13.4' -> '08:19' / '09:59' / '13:40'"""
+    m = re.search(r"(\d{1,2})(?:[:.](\d{1,2}))?", clean(v))
+    return f"{int(m.group(1)):02d}:{(m.group(2) or '00').ljust(2, '0')}" if m else clean(v)
+
+
+def load_gateout_history():
+    """GATE OUT จากรีพอตลาน (GATE MOVE DATABASE) ช่วง GATE_FROM–GATE_TO + วันค้างจาก STAYING วันก่อนปล่อย"""
+    if not os.path.exists(GATE_DB):
+        print(f"!! ไม่พบ {GATE_DB}")
+        return []
+    db = pd.read_excel(GATE_DB, "Container Moves")
+    db = db[db["Move"] == "GATE OUT"].copy()
+    db["gd"] = db["Date"].astype(str).str[:10]
+    db = db[(db["gd"] >= GATE_FROM) & (db["gd"] <= GATE_TO)]
+    try:
+        with open(SNAP_CACHE, encoding="utf-8") as f:
+            cache = json.load(f)
+    except (OSError, ValueError):
+        cache = {}
+    snaps = staying_snapshots()
+    loaded = {d: load_snapshot(p, cache) for d, p in snaps.items() if d <= GATE_TO}
+    with open(SNAP_CACHE, "w", encoding="utf-8") as f:
+        json.dump({k: v for k, v in cache.items() if k.split("|")[0] in snaps.values()}, f)
+    days_desc = sorted(loaded, reverse=True)
+
+    out = []
+    for r in db.itertuples(index=False):
+        row = dict(zip(db.columns, r))
+        cn, gd, loc = clean(row["Container No"]), row["gd"], clean(row["Location"])
+        eq, pmc = "", ""
+        for d in days_desc:                      # STAYING ล่าสุดที่ไม่เกินวันปล่อย ที่มีตู้นี้
+            if d <= gd and cn in loaded[d]:
+                eq, pmc = loaded[d][cn]
+                break
+        days = (datetime.strptime(gd, "%Y-%m-%d") - datetime.strptime(eq, "%Y-%m-%d")).days if eq and eq <= gd else None
+        out.append({
+            "cn": cn, "gd": gd, "gt": fmt_time(row["Gate Time"]), "loc": loc, "ar": area_of(loc, ""),
+            "yard": clean(row["Yard"]), "typ": clean(row["Type"]), "st": clean(row["TPSZ"]),
+            "eq": eq, "d": days, "pmc": pmc, "pgp": group_of(pmc) if pmc else "",
+        })
+    out.sort(key=lambda x: (x["gd"], x["gt"]), reverse=True)
+    return out
 
 
 def archive_gateout(src):
