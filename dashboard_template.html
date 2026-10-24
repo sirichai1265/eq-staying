@@ -531,7 +531,7 @@ function renderLongDaily(){
   ldTitle.textContent = `LONG STAYING รายวัน ${dfull(LONGDAILY[0].d)} – ${dfull(LONGDAILY[LONGDAILY.length-1].d)}`;
   { const l=LONGDAILY[LONGDAILY.length-1]; ldSum.innerHTML = `ล่าสุด ${dfull(l.d)}: ต้นวัน <b>${fmt(l.start)}</b> · ปล่อยออก <b style="color:var(--rel)">${fmt(l.out)}</b> · คงเหลือ <b class="dr">${fmt(l.end)}</b> · รวมปล่อยออกทั้งช่วง <b style="color:var(--rel)">${fmt(LONGDAILY.reduce((s,x)=>s+x.out,0))}</b> ตู้ (${LONGDAILY.length} วัน)`; }
   ldTable.innerHTML = `<table><tr><th>วันที่</th><th>STAYING ที่ใช้</th><th class="num">LONG ต้นวัน</th><th class="num">ปล่อยออก</th><th class="num">คงเหลือ</th><th></th>${cols.map(l=>`<th class="num">${l}</th>`).join("")}</tr>` +
-    LONGDAILY.slice().reverse().map(x=>`<tr style="cursor:pointer${x.d===ldSel?";font-weight:700":""}" data-d="${x.d}"><td>${dfull(x.d)}${x.d===ldSel?" ✓":""}</td><td class="muted">${dfull(x.snap)}</td><td class="num">${fmt(x.start)}</td><td class="num"><b style="color:var(--rel)">${x.out?fmt(x.out):"·"}</b></td><td class="num dr">${fmt(x.end)}</td>
+    LONGDAILY.slice().reverse().map(x=>`<tr style="cursor:pointer${x.d===ldSel?";font-weight:700":""}" data-d="${x.d}"><td>${dfull(x.d)}${x.d===ldSel?" ✓":""}${x.note?` <span class="dy" style="font-size:11px">${esc(x.note)}</span>`:""}</td><td class="muted">${dfull(x.snap)}</td><td class="num">${fmt(x.start)}</td><td class="num"><b style="color:var(--rel)">${x.out?fmt(x.out):"·"}</b></td><td class="num dr">${fmt(x.end)}</td>
       <td><div class="stack" style="min-width:110px" title="คงเหลือ ${x.end} · ปล่อยออก ${x.out}"><span style="width:${x.end/mx*100}%;background:var(--r)"></span><span style="width:${x.out/mx*100}%;background:var(--rel)"></span></div></td>
       ${cols.map(l=>{const v=x.byLoc[l]; return `<td class="num">${v?`${fmt(v[0]-v[1])}${v[1]?` <span style="color:var(--rel);font-size:11.5px">(−${v[1]})</span>`:""}`:'<span class="muted">·</span>'}</td>`;}).join("")}</tr>`).join("") +
     `<tr class="tot"><td>รวมปล่อยออก</td><td></td><td></td><td class="num" style="color:var(--rel)">${fmt(LONGDAILY.reduce((s,x)=>s+x.out,0))}</td><td></td><td></td>${cols.map(l=>`<td class="num" style="color:var(--rel)">${fmt(LONGDAILY.reduce((s,x)=>s+((x.byLoc[l]||[0,0])[1]),0))}</td>`).join("")}</tr></table>`;
@@ -585,7 +585,8 @@ tMain.onclick=e=>{const th=e.target.closest("th[data-k]"); if(!th) return; const
 pager.onclick=e=>{const b=e.target.closest("button[data-p]"); if(!b) return; S.page+=b.dataset.p==="next"?1:-1; renderMain(DATA.filter(r=>pass(r))); mainWrap.scrollIntoView({block:"start"});};
 
 // ===== ตู้ปล่อยออก (GATE OUT จากรีพอตลาน) =====
-const GDATES = uniq(GATE.map(g=>g.gd)).reverse();          // ใหม่ → เก่า
+const HOLI = (META.holidays)||{};
+const GDATES = uniq(GATE.map(g=>g.gd).concat(Object.keys(HOLI).filter(h=>GATE.length&&h>=GATE.reduce((m,g)=>g.gd<m?g.gd:m,"9")&&h<=GATE.reduce((m,g)=>g.gd>m?g.gd:m,"")))).reverse();          // ใหม่ → เก่า (รวมวันลานหยุด)
 const G = { from: GDATES[0]||"", to: GDATES[0]||"", move:"ALL", area:"ALL", bucket:"ALL", q:"" };
 let gRows=[];
 const dfull = d => `${dmy(d)}/${d.slice(0,4)}`;
@@ -689,7 +690,7 @@ function renderGate(){
     gDailyTitle.textContent = `สรุปรายสัปดาห์ (${GWEEKS.length} สัปดาห์)`;
   } else {
     gDaily.innerHTML = `<table>${sumHead("วันที่ปล่อย")}` +
-      GDATES.map(d=>{const sel=d>=G.from&&d<=G.to; return `<tr style="cursor:pointer${sel?";font-weight:700":""}" data-d="${d}"><td>${dfull(d)} <span class="muted">W${isoWeek(d).w}</span>${sel?" ✓":""}</td>${sumCells(dayRows.filter(g=>g.gd===d))}</tr>`;}).join("") + `</table>`;
+      GDATES.map(d=>{const sel=d>=G.from&&d<=G.to; return `<tr style="cursor:pointer${sel?";font-weight:700":""}" data-d="${d}"><td>${dfull(d)} <span class="muted">W${isoWeek(d).w}</span>${HOLI[d]?` <span class="dy" style="font-size:11px">${esc(HOLI[d])}</span>`:""}${sel?" ✓":""}</td>${sumCells(dayRows.filter(g=>g.gd===d))}</tr>`;}).join("") + `</table>`;
     gDailyTitle.textContent = `สรุปรายวัน (${GDATES.length} วัน)`;
   }
   gDaily.onclick=e=>{const tr=e.target.closest("tr[data-d],tr[data-w]"); if(!tr) return;

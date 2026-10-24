@@ -175,6 +175,7 @@ def build_staying(src, archive_it=True, write_index=True):
         "lastEq": max(eq_dates) if eq_dates else "",
     }
     meta["snap"] = snap_date(src, meta["lastEq"])
+    meta["holidays"] = YARD_HOLIDAYS
     gate = load_gateout_history()
     daily = long_daily()
 
@@ -259,6 +260,7 @@ def gateout_rows(path):
 GATE_DB = os.path.join(os.path.dirname(HERE), "GATE MOVE", "GATE MOVE DATABASE.xlsx")
 STOCK_DAILY = os.path.join(os.path.dirname(HERE), "STOCK DAILY")
 GATE_FROM, GATE_TO = "2026-10-01", "9999-12-31"     # ช่วงวันที่เก็บข้อมูลตู้ปล่อยออก (ถึงวันล่าสุดในฐานข้อมูล)
+YARD_HOLIDAYS = {"2026-10-23": "ลานหยุด (วันปิยมหาราช)"}   # วันที่ลานหยุด — ไม่มี GATE OUT
 SNAP_CACHE = os.path.join(HERE, ".staying_cache.json")
 
 
@@ -369,7 +371,8 @@ def long_daily():
     if not SNAPS:
         return []
     from datetime import timedelta
-    days = sorted({mv[0] for mvs in MOVES.values() for mv in mvs if mv[2] == "OUT" and GATE_FROM <= mv[0] <= GATE_TO})
+    days = {mv[0] for mvs in MOVES.values() for mv in mvs if mv[2] == "OUT" and GATE_FROM <= mv[0] <= GATE_TO}
+    days = sorted(days | {h for h in YARD_HOLIDAYS if days and min(days) <= h <= max(days)})
     out = []
     for d in days:
         sd = max((x for x in SNAPS if x <= d), default=None)
@@ -395,7 +398,7 @@ def long_daily():
                 gone_today.append(dict(rec, gt=g[1], yard=g[3]))
         locs = sorted({r["loc"] for r in start})
         out.append({
-            "d": d, "snap": sd, "inYard": in_yard,
+            "d": d, "snap": sd, "inYard": in_yard, "note": YARD_HOLIDAYS.get(d, ""),
             "start": len(start), "out": len(gone_today), "end": len(start) - len(gone_today),
             "byLoc": {l: [sum(r["loc"] == l for r in start), sum(r["loc"] == l for r in gone_today)] for l in locs},
             "gone": sorted(gone_today, key=lambda r: -r["d"]),
@@ -445,10 +448,11 @@ def write_long_daily_xlsx(daily):
                 "ปล่อยวันนี้ = GATE OUT ตามรีพอตลาน (GATE MOVE) · คงเหลือ = ต้นวัน − ปล่อยวันนี้")
     ws["A2"].font = Font(color="6B7684")
     head(ws, 4, ["วันที่", "STAYING ที่ใช้", "ตู้ในลาน (ไม่รวม OE)", "LONG ต้นวัน", "ปล่อยออกวันนี้", "LONG คงเหลือ"]
-         + [f"{l} คงเหลือ" for l in locs])
+         + [f"{l} คงเหลือ" for l in locs] + ["หมายเหตุ"])
     for i, x in enumerate(daily, 5):
         put(ws, i, [x["d"], x["snap"], x["inYard"], x["start"], x["out"], x["end"]]
-            + [x["byLoc"].get(l, [0, 0])[0] - x["byLoc"].get(l, [0, 0])[1] for l in locs])
+            + [x["byLoc"].get(l, [0, 0])[0] - x["byLoc"].get(l, [0, 0])[1] for l in locs] + [x.get("note", "")],
+            fill="FEF9C3" if x.get("note") else None)
         ws.cell(i, 5).font = Font(bold=True, color="0F766E")
         ws.cell(i, 6).font = Font(bold=True, color="B91C1C")
     tot = [sum(x["out"] for x in daily)]
@@ -711,6 +715,7 @@ def write_gate_summaries(rows, meta, gate, ldaily=()):
     border = Border(top=thin, left=thin, bottom=thin, right=thin)
     ld = {x["d"]: x for x in ldaily}
     days = sorted({g["gd"] for g in gate})
+    days = sorted(set(days) | {h for h in YARD_HOLIDAYS if days[0] <= h <= days[-1]})
     yards = sorted({(g["loc"], g["yard"]) for g in gate})
 
     def bucket_counts(lst):
@@ -815,7 +820,7 @@ def write_gate_summaries(rows, meta, gate, ldaily=()):
         wb = Workbook()
         ws = wb.active
         ws.title = "สรุป"
-        ws["A1"] = f"ตู้ปล่อยออกจากลาน วันที่ {d[8:10]}/{d[5:7]}/{d[:4]} ({iso_week(d)[0]})"
+        ws["A1"] = f"ตู้ปล่อยออกจากลาน วันที่ {d[8:10]}/{d[5:7]}/{d[:4]} ({iso_week(d)[0]})" + (f" — {YARD_HOLIDAYS[d]}" if d in YARD_HOLIDAYS else "")
         ws["A1"].font = Font(bold=True, size=14)
         ws["A2"] = (f"ปล่อยออก {len(lst):,} ตู้ · LONG STAYING ต้นวัน {row[-3]} · ปล่อยวันนี้ {row[-2]} · คงเหลือ {row[-1]} "
                     f"(STAYING {row[-5]})")
