@@ -586,6 +586,9 @@ pager.onclick=e=>{const b=e.target.closest("button[data-p]"); if(!b) return; S.p
 
 // ===== ตู้ปล่อยออก (GATE OUT จากรีพอตลาน) =====
 const HOLI = (META.holidays)||{};
+const CLOSED = (META.closed)||{};                    // {date: [Location, ...]} ลานหยุดเฉพาะบางลาน
+const dayNote = d => HOLI[d] || (CLOSED[d] ? CLOSED[d].join(" / ")+" closed" : "");
+const yardClosed = l => G.from===G.to && (CLOSED[G.from]||[]).includes(l);
 const GDATES = uniq(GATE.map(g=>g.gd).concat(Object.keys(HOLI).filter(h=>GATE.length&&h>=GATE.reduce((m,g)=>g.gd<m?g.gd:m,"9")&&h<=GATE.reduce((m,g)=>g.gd>m?g.gd:m,"")))).reverse();          // ใหม่ → เก่า (รวมวันลานหยุด)
 const G = { from: GDATES[0]||"", to: GDATES[0]||"", move:"ALL", area:"ALL", bucket:"ALL", q:"" };
 let gRows=[];
@@ -659,7 +662,7 @@ function renderGate(){
   const top = known[0] ? known.reduce((a,b)=>b.d>a.d?b:a) : null;
   const long = known.filter(g=>g.d>=100).length;
   const kp=[
-    {l:`Gated out ${gRangeTxt()}`,v:fmt(rows.length),c:"var(--rel)",s:G.move==="ALL"?GYARDS.map(([l])=>`${l} ${fmt(rows.filter(g=>g.loc===l).length)}`).join(" · "):GYARDS.find(y=>y[0]===G.move)[1]},
+    {l:`Gated out ${gRangeTxt()}`,v:fmt(rows.length),c:"var(--rel)",s:G.move==="ALL"?GYARDS.map(([l])=>`${l} ${yardClosed(l)?"closed":fmt(rows.filter(g=>g.loc===l).length)}`).join(" · "):GYARDS.find(y=>y[0]===G.move)[1]},
     {l:"Avg days before gate out",v:avg,c:"var(--accent)",s:"days"},
     {l:"Longest stay",v:top?top.d:"-",c:top?bucketOf(top.d).c:"var(--line)",s:top?`${top.cn} · ${top.st} · ${top.yard}`:"",cls:top?bucketOf(top.d).cls:""},
     {l:"Gated out after ≥100 days",v:fmt(long),c:"var(--r)",cls:"dr",s:`${pct(long,known.length)}% of gated out`},
@@ -672,7 +675,7 @@ function renderGate(){
   const yRows = GATE.filter(g=>gPass(g,"move"));
   gYardTitle.textContent = `Summary by Depot · ${gRangeTxt()}`;
   gYard.innerHTML = `<table>${sumHead("Depot")}` +
-    GYARDS.map(([l,label])=>{const yr=yRows.filter(g=>g.loc===l); return yr.length?`<tr style="cursor:pointer${G.move===l?";font-weight:700":""}" data-y="${l}"><td>${esc(label)}${G.move===l?" ✓":""}</td>${sumCells(yr)}</tr>`:"";}).join("") +
+    GYARDS.map(([l,label])=>{const yr=yRows.filter(g=>g.loc===l); if(!yr.length && yardClosed(l)) return `<tr><td>${esc(label)} <span class="dy" style="font-size:11px">Yard closed</span></td><td class="num muted">–</td>${BUCKETS.map(()=>`<td class="num muted">–</td>`).join("")}<td class="num muted">–</td><td class="num muted">–</td></tr>`; return yr.length?`<tr style="cursor:pointer${G.move===l?";font-weight:700":""}" data-y="${l}"><td>${esc(label)}${G.move===l?" ✓":""}</td>${sumCells(yr)}</tr>`:"";}).join("") +
     `<tr class="tot"><td>Total</td>${sumCells(yRows)}</tr></table>`;
   gYard.onclick=e=>{const tr=e.target.closest("tr[data-y]"); if(!tr) return; G.move=G.move===tr.dataset.y?"ALL":tr.dataset.y; renderGate();};
 
@@ -690,7 +693,7 @@ function renderGate(){
     gDailyTitle.textContent = `Weekly Summary (${GWEEKS.length} weeks)`;
   } else {
     gDaily.innerHTML = `<table>${sumHead("Gate out date")}` +
-      GDATES.map(d=>{const sel=d>=G.from&&d<=G.to; return `<tr style="cursor:pointer${sel?";font-weight:700":""}" data-d="${d}"><td>${dfull(d)} <span class="muted">W${isoWeek(d).w}</span>${HOLI[d]?` <span class="dy" style="font-size:11px">${esc(HOLI[d])}</span>`:""}${sel?" ✓":""}</td>${sumCells(dayRows.filter(g=>g.gd===d))}</tr>`;}).join("") + `</table>`;
+      GDATES.map(d=>{const sel=d>=G.from&&d<=G.to; return `<tr style="cursor:pointer${sel?";font-weight:700":""}" data-d="${d}"><td>${dfull(d)} <span class="muted">W${isoWeek(d).w}</span>${dayNote(d)?` <span class="dy" style="font-size:11px">${esc(dayNote(d))}</span>`:""}${sel?" ✓":""}</td>${sumCells(dayRows.filter(g=>g.gd===d))}</tr>`;}).join("") + `</table>`;
     gDailyTitle.textContent = `Daily Summary (${GDATES.length} days)`;
   }
   gDaily.onclick=e=>{const tr=e.target.closest("tr[data-d],tr[data-w]"); if(!tr) return;

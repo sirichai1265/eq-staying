@@ -176,6 +176,7 @@ def build_staying(src, archive_it=True, write_index=True):
     }
     meta["snap"] = snap_date(src, meta["lastEq"])
     meta["holidays"] = YARD_HOLIDAYS
+    meta["closed"] = YARD_CLOSED
     gate = load_gateout_history()
     daily = long_daily()
 
@@ -260,7 +261,16 @@ def gateout_rows(path):
 GATE_DB = os.path.join(os.path.dirname(HERE), "GATE MOVE", "GATE MOVE DATABASE.xlsx")
 STOCK_DAILY = os.path.join(os.path.dirname(HERE), "STOCK DAILY")
 GATE_FROM, GATE_TO = "2026-10-01", "9999-12-31"     # ช่วงวันที่เก็บข้อมูลตู้ปล่อยออก (ถึงวันล่าสุดในฐานข้อมูล)
-YARD_HOLIDAYS = {"2026-10-23": "Yard closed (Chulalongkorn Day)"}   # วันที่ลานหยุด — ไม่มี GATE OUT
+YARD_HOLIDAYS = {"2026-10-23": "Yard closed (Chulalongkorn Day)"}
+YARD_CLOSED = {"2026-10-24": ["LCH27", "LCH28"]}     # ลานที่หยุดเฉพาะบางลาน (Location)
+
+
+def day_note(d):
+    if d in YARD_HOLIDAYS:
+        return YARD_HOLIDAYS[d]
+    if d in YARD_CLOSED:
+        return " / ".join(YARD_CLOSED[d]) + " closed"
+    return ""   # วันที่ลานหยุด — ไม่มี GATE OUT
 SNAP_CACHE = os.path.join(HERE, ".staying_cache.json")
 
 
@@ -398,7 +408,7 @@ def long_daily():
                 gone_today.append(dict(rec, gt=g[1], yard=g[3]))
         locs = sorted({r["loc"] for r in start})
         out.append({
-            "d": d, "snap": sd, "inYard": in_yard, "note": YARD_HOLIDAYS.get(d, ""),
+            "d": d, "snap": sd, "inYard": in_yard, "note": day_note(d),
             "start": len(start), "out": len(gone_today), "end": len(start) - len(gone_today),
             "byLoc": {l: [sum(r["loc"] == l for r in start), sum(r["loc"] == l for r in gone_today)] for l in locs},
             "gone": sorted(gone_today, key=lambda r: -r["d"]),
@@ -820,7 +830,7 @@ def write_gate_summaries(rows, meta, gate, ldaily=()):
         wb = Workbook()
         ws = wb.active
         ws.title = "สรุป"
-        ws["A1"] = f"ตู้ปล่อยออกจากลาน วันที่ {d[8:10]}/{d[5:7]}/{d[:4]} ({iso_week(d)[0]})" + (f" — {YARD_HOLIDAYS[d]}" if d in YARD_HOLIDAYS else "")
+        ws["A1"] = f"ตู้ปล่อยออกจากลาน วันที่ {d[8:10]}/{d[5:7]}/{d[:4]} ({iso_week(d)[0]})" + (f" — {day_note(d)}" if day_note(d) else "")
         ws["A1"].font = Font(bold=True, size=14)
         ws["A2"] = (f"ปล่อยออก {len(lst):,} ตู้ · LONG STAYING ต้นวัน {row[-3]} · ปล่อยวันนี้ {row[-2]} · คงเหลือ {row[-1]} "
                     f"(STAYING {row[-5]})")
