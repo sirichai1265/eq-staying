@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="th">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -158,19 +158,19 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
         <img class="logo" src="__LOGO__" alt="HEUNG A LINE">
         <div>
           <h1>EQ STAYING Dashboard</h1>
-          <div class="tag">ติดตามตู้ AV / DMG · LONG STAYING · ตู้ปล่อยออกจากลาน</div>
+          <div class="tag">AV / DMG containers · LONG STAYING · Depot gate out</div>
         </div>
       </div>
       <div class="frow">
         <a class="hbtn" href="https://sirichai1265.github.io/equipment/">← EQUIPMENT</a>
-        <button class="hbtn" id="themeBtn" title="สลับธีม">◐ Theme</button>
+        <button class="hbtn" id="themeBtn" title="Toggle theme">◐ Theme</button>
       </div>
     </div>
     <nav class="tabs" id="tabs">
-      <button class="tab" data-tab="overview">📊 ภาพรวม</button>
+      <button class="tab" data-tab="overview">📊 Overview</button>
       <button class="tab" data-tab="long">⚠ LONG STAYING <span class="cnt hot" id="tabLong"></span></button>
-      <button class="tab" data-tab="gate">🚚 ตู้ปล่อยออก <span class="cnt" id="tabGate"></span></button>
-      <button class="tab" data-tab="list" hidden>📋 รายการตู้ <span class="cnt" id="tabList"></span></button>
+      <button class="tab" data-tab="gate">🚚 Gate Out <span class="cnt" id="tabGate"></span></button>
+      <button class="tab" data-tab="list" hidden>📋 Container List <span class="cnt" id="tabList"></span></button>
     </nav>
   </div>
 </div>
@@ -179,16 +179,16 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
   <!-- ตัวกรอง (ใช้กับ ภาพรวม / LONG STAYING / รายการตู้) -->
   <div class="card filters mb" id="filterCard" style="margin-top:16px">
     <div class="frow"><span class="flabel">Area</span><div id="fArea" class="frow"></div>
-      <button class="btn reset" id="resetBtn">↺ ล้างตัวกรอง</button></div>
+      <button class="btn reset" id="resetBtn">↺ Reset filters</button></div>
     <div class="frow"><span class="flabel">Group</span><div id="fGroup" class="frow"></div></div>
     <div class="frow"><span class="flabel">Days</span><div id="fBucket" class="frow"></div></div>
     <details class="more" id="moreFilters">
-      <summary>＋ ตัวกรองเพิ่มเติม (Size/Type, Built Year, Location, Move Code)</summary>
+      <summary>＋ More filters (Size/Type, Built Year, Location, Move Code)</summary>
       <div class="filters">
         <div class="frow"><span class="flabel">Size/Type</span><div id="fSize" class="frow"></div></div>
         <div class="frow">
           <span class="flabel">Built Year</span>
-          <select id="byFrom"></select><span class="muted">ถึง</span><select id="byTo"></select>
+          <select id="byFrom"></select><span class="muted">to</span><select id="byTo"></select>
           <span class="flabel" style="min-width:auto;margin-left:14px">Location</span><select id="fLoc"></select>
           <span class="flabel" style="min-width:auto;margin-left:14px">Move Code</span><select id="fMc"></select>
           <span id="rfWrap" style="display:none"><span class="flabel" style="min-width:auto;margin-left:14px">RF Brand</span><select id="fRf"></select></span>
@@ -202,20 +202,20 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
     <div class="kpis mb" id="kpis"></div>
     <div class="grid32 mb">
       <div class="card">
-        <h2>อายุตู้ในลาน (Aging)</h2>
-        <p class="hint">สัดส่วนตู้ตามจำนวนวันที่อยู่ในลาน · ชี้ที่แถบเพื่อดูจำนวน</p>
+        <h2>Container Aging in Depot</h2>
+        <p class="hint">Share of containers by days in depot · hover a bar for counts</p>
         <div class="aging" id="agingChart"></div>
-        <div class="legend"><span><i style="background:var(--g)"></i>0–30 วัน ปกติ</span><span><i style="background:var(--o)"></i>31–99 วัน เฝ้าระวัง</span><span><i style="background:var(--r)"></i>100–199 วัน ค้างนาน</span><span><i style="background:var(--y)"></i>200+ วัน เร่งจัดการ</span></div>
+        <div class="legend"><span><i style="background:var(--g)"></i>0–30 days Normal</span><span><i style="background:var(--o)"></i>31–99 days Watch</span><span><i style="background:var(--r)"></i>100–199 days Long staying</span><span><i style="background:var(--y)"></i>200+ days Urgent</span></div>
       </div>
       <div class="card">
-        <h2>สรุปตาม Area × Group</h2>
+        <h2>Summary by Area × Group</h2>
         <p class="hint">AV = IEC/IED/IEP/IER/IEW/VED · DMG = OER</p>
         <div class="scroll" id="tArea"></div>
       </div>
     </div>
     <div class="card">
-      <h2>Aging ตาม Location</h2>
-      <p class="hint">เฉพาะลาน BKK01+BKK04, BKK02, BKK25, BKK27, LCH54, LCH55, LCH27, LCH28, LCHY5 · คลิกแถวเพื่อกรองเฉพาะลานนั้น</p>
+      <h2>Aging by Location</h2>
+      <p class="hint">Depots BKK01+BKK04, BKK02, BKK25, BKK27, LCH54, LCH55, LCH27, LCH28, LCHY5 · click a row to filter that depot</p>
       <div class="scroll" id="tLoc"></div>
     </div>
   </section>
@@ -223,24 +223,24 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
   <!-- ===== LONG STAYING ===== -->
   <section class="page" id="pg-long">
     <div class="card mb">
-      <div class="tablebar" style="margin-bottom:4px"><h2 id="ldTitle" style="margin:0">LONG STAYING รายวัน</h2><button class="btn" id="ldToggle">▸ แสดงรายการ</button></div>
+      <div class="tablebar" style="margin-bottom:4px"><h2 id="ldTitle" style="margin:0">LONG STAYING Daily</h2><button class="btn" id="ldToggle">▸ Show list</button></div>
       <p class="hint" id="ldSum"></p>
       <div id="ldBody" style="display:none">
-      <p class="hint">ต้นวัน = STAYING ล่าสุดใน STOCK DAILY ที่ไม่เกินวันนั้น (อายุ ≥100 วัน ณ วันนั้น · ไม่รวม OEV/OEP/OEW) · ปล่อยออก = GATE OUT ตามรีพอตลาน · คลิกแถวเพื่อดูตู้ที่ปล่อยออกวันนั้น</p>
+      <p class="hint">Start of day = latest STOCK DAILY STAYING up to that date (≥100 days as of that date · excl. OEV/OEP/OEW) · Gated out = depot GATE OUT reports · click a row to see the containers gated out that day</p>
       <div class="scroll" style="max-height:460px" id="ldTable"></div>
       <div id="ldGone" style="margin-top:12px"></div>
       </div>
     </div>
     <div class="card alert">
       <div class="tablebar">
-        <h2 style="margin:0">⚠ แจ้งเตือน LONG STAYING (≥ 100 วัน · ไม่รวม OEV/OEP/OEW) — <span id="alertCount"></span></h2>
+        <h2 style="margin:0">⚠ LONG STAYING Alert (≥ 100 days · excl. OEV/OEP/OEW) — <span id="alertCount"></span></h2>
         <div class="frow">
-          <input type="search" id="alertQ" placeholder="ค้นหาเบอร์ตู้ LONG STAYING">
-          <button class="btn" id="alertToggle">▸ แสดงรายการ</button>
+          <input type="search" id="alertQ" placeholder="Search container no.">
+          <button class="btn" id="alertToggle">▸ Show list</button>
           <button class="btn solid" id="xlsxBtn">⬇ Export Excel</button>
         </div>
       </div>
-      <div class="frow" style="margin-top:8px"><span class="flabel">กลุ่มละ 50 วัน</span><div id="alertBands" class="frow"></div></div>
+      <div class="frow" style="margin-top:8px"><span class="flabel">50-day bands</span><div id="alertBands" class="frow"></div></div>
       <div class="scroll" style="max-height:560px;margin-top:10px;display:none" id="tAlert"></div>
     </div>
   </section>
@@ -248,40 +248,40 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
   <!-- ===== ตู้ปล่อยออก ===== -->
   <section class="page" id="pg-gate">
     <div class="card mb filters">
-      <p class="hint" style="margin:0">ข้อมูลจากรีพอต GATE OUT ของลาน (SMART BKK · BC · HAST · CELLO · PW) <span id="gRange"></span></p>
-      <div class="frow"><span class="flabel">สัปดาห์</span><select id="gWFrom"></select><span class="muted">ถึง</span><select id="gWTo"></select></div>
-      <div class="frow"><span class="flabel">วันที่ปล่อย</span><select id="gFrom"></select><span class="muted">ถึง</span><select id="gTo"></select><div id="gQuick" class="frow" style="margin-left:8px"></div></div>
-      <div class="frow"><span class="flabel">ลาน</span><div id="gMove" class="frow"></div></div>
+      <p class="hint" style="margin:0">Source: depot GATE OUT reports (SMART BKK · BC · HAST · CELLO · PW) <span id="gRange"></span></p>
+      <div class="frow"><span class="flabel">Week</span><select id="gWFrom"></select><span class="muted">to</span><select id="gWTo"></select></div>
+      <div class="frow"><span class="flabel">Gate out date</span><select id="gFrom"></select><span class="muted">to</span><select id="gTo"></select><div id="gQuick" class="frow" style="margin-left:8px"></div></div>
+      <div class="frow"><span class="flabel">Depot</span><div id="gMove" class="frow"></div></div>
       <div class="frow"><span class="flabel">Area</span><div id="gArea" class="frow"></div></div>
     </div>
     <div class="kpis mb" id="gKpis"></div>
     <div class="card mb">
-      <h2 id="gYardTitle">สรุปแต่ละลาน</h2>
-      <p class="hint">จำนวนตู้ปล่อยออกแยกตามลานและกลุ่มวันค้าง · คลิกแถวเพื่อเลือกลานนั้น</p>
+      <h2 id="gYardTitle">Summary by Depot</h2>
+      <p class="hint">Gated-out containers by depot and days in depot · click a row to select that depot</p>
       <div class="scroll" id="gYard"></div>
     </div>
     <div class="grid2 mb">
       <div class="card">
-        <h2>วันค้างในลานก่อนปล่อยออก</h2>
-        <p class="hint">นับจาก EQ Date (วันเข้าลาน) ถึง Gate Date (วันปล่อยออก)</p>
+        <h2>Days in Depot before Gate Out</h2>
+        <p class="hint">From EQ Date (gate in) to Gate Date (gate out)</p>
         <div class="hbars" id="gBuckets"></div>
       </div>
       <div class="card">
-        <div class="tablebar" style="margin-bottom:4px"><h2 id="gDailyTitle" style="margin:0">สรุปรายวัน</h2><div id="gView" class="frow"></div></div>
-        <p class="hint">จำนวนตู้ปล่อยออกแยกตามกลุ่มวันค้าง · คลิกแถวเพื่อเลือกวัน / สัปดาห์นั้น</p>
+        <div class="tablebar" style="margin-bottom:4px"><h2 id="gDailyTitle" style="margin:0">Daily Summary</h2><div id="gView" class="frow"></div></div>
+        <p class="hint">Gated-out containers by days in depot · click a row to select that day / week</p>
         <div class="scroll" id="gDaily"></div>
       </div>
     </div>
     <div class="card">
       <div class="tablebar">
-        <h2 style="margin:0">รายงานตู้ค้างนานที่ปล่อยออก (เรียงวันค้างมาก → น้อย) — <span id="gCount"></span></h2>
+        <h2 style="margin:0">Gated-out Containers Report (longest stay first) — <span id="gCount"></span></h2>
         <div class="frow">
-          <input type="search" id="gQ" placeholder="ค้นหาเบอร์ตู้">
-          <button class="btn" id="gToggle">▸ แสดงรายการ</button>
+          <input type="search" id="gQ" placeholder="Search container no.">
+          <button class="btn" id="gToggle">▸ Show list</button>
           <button class="btn solid" id="gXlsx">⬇ Export Excel</button>
         </div>
       </div>
-      <div class="frow" style="margin-bottom:10px"><span class="flabel">วันค้าง</span><div id="gBucketBtns" class="frow"></div></div>
+      <div class="frow" style="margin-bottom:10px"><span class="flabel">Days in depot</span><div id="gBucketBtns" class="frow"></div></div>
       <div class="scroll" style="max-height:640px;display:none" id="gTable"></div>
     </div>
   </section>
@@ -290,13 +290,13 @@ tr.bandrow td{background:var(--chip);font-weight:700;font-size:13px;padding:7px 
   <section class="page" id="pg-list" hidden>
     <div class="card">
       <div class="tablebar">
-        <h2 style="margin:0">รายการตู้ในลาน (ไม่รวม OEV/OEP/OEW · เรียงตาม Days มาก → น้อย)</h2>
+        <h2 style="margin:0">Containers in Depot (excl. OEV/OEP/OEW · sorted by Days, longest first)</h2>
         <div class="frow">
-          <input type="search" id="q" placeholder="ค้นหา Container No">
+          <input type="search" id="q" placeholder="Search container no.">
           <button class="btn" id="csvBtn">⬇ Export CSV</button>
         </div>
       </div>
-      <div class="frow" style="margin-bottom:10px"><span class="flabel">กลุ่มละ 50 วัน</span><div id="mainBands" class="frow"></div></div>
+      <div class="frow" style="margin-bottom:10px"><span class="flabel">50-day bands</span><div id="mainBands" class="frow"></div></div>
       <div class="scroll" id="mainWrap"><table id="tMain"></table></div>
       <div class="pager" id="pager"></div>
     </div>
@@ -315,10 +315,10 @@ const DATA = DATA_RAW.filter(r=>!RELEASED.has(r.cn));
 const CUT = DATA_RAW.filter(r=>RELEASED.has(r.cn));
 const REEFER = ["22RE","45RE"];
 const BUCKETS = [
-  {k:"G",l:"0–30",name:"ปกติ",cls:"dg",c:"var(--g)",t:d=>d<=30},
-  {k:"O",l:"31–99",name:"เฝ้าระวัง",cls:"do",c:"var(--o)",t:d=>d>=31&&d<=99},
-  {k:"R",l:"100–199",name:"ค้างนาน",cls:"dr",c:"var(--r)",t:d=>d>=100&&d<200},
-  {k:"Y",l:"200+",name:"เร่งจัดการ",cls:"dy",c:"var(--y)",t:d=>d>=200},
+  {k:"G",l:"0–30",name:"Normal",cls:"dg",c:"var(--g)",t:d=>d<=30},
+  {k:"O",l:"31–99",name:"Watch",cls:"do",c:"var(--o)",t:d=>d>=31&&d<=99},
+  {k:"R",l:"100–199",name:"Long staying",cls:"dr",c:"var(--r)",t:d=>d>=100&&d<200},
+  {k:"Y",l:"200+",name:"Urgent",cls:"dy",c:"var(--y)",t:d=>d>=200},
 ];
 const bucketOf = d => BUCKETS.find(b=>b.t(d));
 // ลานที่แสดงใน "Aging ตาม Location" และ "รายการตู้" (เรียงตามนี้)
@@ -342,7 +342,7 @@ const years = uniq(DATA.map(r=>r.by).filter(Boolean));
 const sizes = Object.entries(DATA.reduce((m,r)=>(m[r.st]=(m[r.st]||0)+1,m),{})).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
 
 // ตู้ที่ปล่อยออกแล้วหลังวันที่ของข้อมูล STAYING
-const relBadge = cn => { const g=RELEASED.get(cn); return g?`<span class="rel" title="GATE OUT ${g.yard} ${g.gd} ${g.gt}">ปล่อยแล้ว ${dmy(g.gd)}</span>`:""; };
+const relBadge = cn => { const g=RELEASED.get(cn); return g?`<span class="rel" title="GATE OUT ${g.yard} ${g.gd} ${g.gt}">Gated out ${dmy(g.gd)}</span>`:""; };
 
 const S = { area:"ALL", group:"ALL", sizes:new Set(), bucket:"ALL", byFrom:years[0], byTo:years[years.length-1],
             loc:"ALL", mc:"ALL", rf:"ALL", q:"", page:0, sortKey:"d", sortDir:-1 };
@@ -367,22 +367,22 @@ function fillSelect(el, opts, allLabel){
   el.innerHTML = (allLabel?`<option value="ALL">${allLabel}</option>`:"") + opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("");
 }
 
-btnGroup(fArea, [["ALL","ทั้งหมด"],["BKK","BKK"],["LCH","LCH"]], v=>{S.area=v;S.loc="ALL";render();});
-btnGroup(fGroup, [["ALL","ทั้งหมด"],["AV","AV"],["DMG","DMG"],...(GROUPS.includes("OTHER")?[["OTHER","OTHER"]]:[])], v=>{S.group=v;render();});
-btnGroup(fSize, [["ALL","ทั้งหมด"],["REEFER","❄ Reefer (22RE+45RE)"],...sizes.map(s=>[s,s])], v=>{
+btnGroup(fArea, [["ALL","All"],["BKK","BKK"],["LCH","LCH"]], v=>{S.area=v;S.loc="ALL";render();});
+btnGroup(fGroup, [["ALL","All"],["AV","AV"],["DMG","DMG"],...(GROUPS.includes("OTHER")?[["OTHER","OTHER"]]:[])], v=>{S.group=v;render();});
+btnGroup(fSize, [["ALL","All"],["REEFER","❄ Reefer (22RE+45RE)"],...sizes.map(s=>[s,s])], v=>{
   if(v==="ALL") S.sizes.clear();
   else if(v==="REEFER"){ const both=REEFER.every(x=>S.sizes.has(x))&&S.sizes.size===2; S.sizes=new Set(both?[]:REEFER); }
   else S.sizes.has(v)?S.sizes.delete(v):S.sizes.add(v);
   if(!showRf()) S.rf="ALL";
   render();
 });
-btnGroup(fBucket, [["ALL","ทั้งหมด"],...BUCKETS.map(b=>[b.k,`<span class="${b.cls}">${b.l} วัน</span>`]),["LONG","≥100 วัน"]], v=>{S.bucket=v;render();});
+btnGroup(fBucket, [["ALL","All"],...BUCKETS.map(b=>[b.k,`<span class="${b.cls}">${b.l} days</span>`]),["LONG","≥100 days"]], v=>{S.bucket=v;render();});
 fillSelect(byFrom, years); fillSelect(byTo, years);
 byFrom.value=S.byFrom; byTo.value=S.byTo;
 byFrom.onchange=()=>{S.byFrom=+byFrom.value;render();};
 byTo.onchange=()=>{S.byTo=+byTo.value;render();};
-fillSelect(fMc, uniq(DATA.map(r=>r.mc)), "ทั้งหมด");
-fillSelect(fRf, uniq(DATA.filter(r=>r.rf).map(r=>r.rf)).concat(["(ไม่ระบุ)"]), "ทั้งหมด");
+fillSelect(fMc, uniq(DATA.map(r=>r.mc)), "All");
+fillSelect(fRf, uniq(DATA.filter(r=>r.rf).map(r=>r.rf)).concat(["(not specified)"]), "All");
 fMc.onchange=()=>{S.mc=fMc.value;render();};
 fLoc.onchange=()=>{S.loc=fLoc.value;render();};
 fRf.onchange=()=>{S.rf=fRf.value;render();};
@@ -407,7 +407,7 @@ function pass(r, exclude){
   if(r.by && (r.by<S.byFrom || r.by>S.byTo)) return false;
   if(S.loc!=="ALL" && !S.loc.split(",").includes(r.loc)) return false;
   if(S.mc!=="ALL" && r.mc!==S.mc) return false;
-  if(S.rf!=="ALL" && (S.rf==="(ไม่ระบุ)" ? r.rf!=="" || !REEFER.includes(r.st) : r.rf!==S.rf)) return false;
+  if(S.rf!=="ALL" && (S.rf==="(not specified)" ? r.rf!=="" || !REEFER.includes(r.st) : r.rf!==S.rf)) return false;
   if(S.q && !r.cn.toUpperCase().includes(S.q)) return false;
   return true;
 }
@@ -426,8 +426,8 @@ function dayCell(d){ if(d==null) return `<span class="dn">-</span>`; const b=buc
 // แถบ Aging แบบ 100% (ป้ายตัวเลขบนแถบเมื่อกว้างพอ)
 function agingBar(label, list){
   const n=list.length, cnt=BUCKETS.map(b=>list.filter(r=>b.t(r.d)).length);
-  const segs = n ? cnt.map((v,i)=>v?`<div class="seg ${BUCKETS[i].k}" style="flex:${v};background:${BUCKETS[i].c}" title="${label} · ${BUCKETS[i].l} วัน (${BUCKETS[i].name}): ${fmt(v)} ตู้ (${pct(v,n)}%)">${pct(v,n)>=7?fmt(v):""}</div>`:"").join("") : `<div class="seg" style="flex:1;background:var(--chip)"></div>`;
-  return `<div class="arow"><div class="ah"><b>${label}</b><span>${fmt(n)} ตู้ · ≥100 วัน <b class="dr">${fmt(cnt[2]+cnt[3])}</b></span></div><div class="bar">${segs}</div></div>`;
+  const segs = n ? cnt.map((v,i)=>v?`<div class="seg ${BUCKETS[i].k}" style="flex:${v};background:${BUCKETS[i].c}" title="${label} · ${BUCKETS[i].l} days (${BUCKETS[i].name}): ${fmt(v)} units (${pct(v,n)}%)">${pct(v,n)>=7?fmt(v):""}</div>`:"").join("") : `<div class="seg" style="flex:1;background:var(--chip)"></div>`;
+  return `<div class="arow"><div class="ah"><b>${label}</b><span>${fmt(n)} units · ≥100 days <b class="dr">${fmt(cnt[2]+cnt[3])}</b></span></div><div class="bar">${segs}</div></div>`;
 }
 
 function render(){
@@ -445,8 +445,8 @@ function render(){
 
   const present = new Set(DATA.filter(r=>S.area==="ALL"||r.ar===S.area).map(r=>r.loc));
   const locOpts = YARDS.filter(y=>y.locs.some(l=>present.has(l))).map(y=>[y.locs.join(","),y.label])
-    .concat([...present].filter(l=>!YARD_LOCS.has(l)).sort().map(l=>[l,l+" (ไม่แสดงในรายการตู้)"]));
-  fLoc.innerHTML = `<option value="ALL">ทั้งหมด</option>` + locOpts.map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("");
+    .concat([...present].filter(l=>!YARD_LOCS.has(l)).sort().map(l=>[l,l+" (not in container list)"]));
+  fLoc.innerHTML = `<option value="ALL">All</option>` + locOpts.map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("");
   fLoc.value = locOpts.some(o=>o[0]===S.loc)?S.loc:"ALL";
   rfWrap.style.display = showRfCol() ? "" : "none";
   document.body.classList.toggle("showrf", showRfCol());
@@ -459,41 +459,41 @@ function render(){
   const lastGateDay = GATE.length ? GATE.map(g=>g.gd).sort().pop() : "";
   const cutF = CUT.filter(r=>pass(r));
   const kp=[
-    {l:"ตู้ในลานทั้งหมด",v:rows.length,c:"var(--accent)",s:`BKK ${fmt(n(r=>r.ar==="BKK"))} · LCH ${fmt(n(r=>r.ar==="LCH"))}`},
-    {l:"AV",v:n(r=>r.gp==="AV"),c:"var(--av)",set:()=>S.group=S.group==="AV"?"ALL":"AV",sel:S.group==="AV",s:`${pct(n(r=>r.gp==="AV"),rows.length)}% ของทั้งหมด`},
-    {l:"DMG",v:n(r=>r.gp==="DMG"),c:"var(--dmg)",set:()=>S.group=S.group==="DMG"?"ALL":"DMG",sel:S.group==="DMG",s:`${pct(n(r=>r.gp==="DMG"),rows.length)}% ของทั้งหมด`},
-    {l:"LONG STAYING ≥100 วัน",v:n(isLong),c:"var(--r)",cls:"dr",go:"long",s:"คลิกเพื่อดูรายการ"},
-    {l:"200+ วัน",v:n(r=>r.d>=200),c:"var(--y)",cls:"dy",set:()=>S.bucket=S.bucket==="Y"?"ALL":"Y",sel:S.bucket==="Y",s:"ต้องเร่งจัดการ"},
-    {l:"อายุเฉลี่ยในลาน",v:rows.length?Math.round(rows.reduce((s,r)=>s+r.d,0)/rows.length):0,c:"var(--muted)",s:"วัน"},
-    ...(CUT.length?[{l:`ปล่อยออกแล้ว (ตัดออก)`,v:cutF.length,c:"var(--rel)",go:"gate",s:`ถึง ${dmy(lastGateDay)} · ≥100 วัน ${fmt(cutF.filter(isLong).length)} ตู้`}]:[]),
+    {l:"Containers in depot",v:rows.length,c:"var(--accent)",s:`BKK ${fmt(n(r=>r.ar==="BKK"))} · LCH ${fmt(n(r=>r.ar==="LCH"))}`},
+    {l:"AV",v:n(r=>r.gp==="AV"),c:"var(--av)",set:()=>S.group=S.group==="AV"?"ALL":"AV",sel:S.group==="AV",s:`${pct(n(r=>r.gp==="AV"),rows.length)}% of total`},
+    {l:"DMG",v:n(r=>r.gp==="DMG"),c:"var(--dmg)",set:()=>S.group=S.group==="DMG"?"ALL":"DMG",sel:S.group==="DMG",s:`${pct(n(r=>r.gp==="DMG"),rows.length)}% of total`},
+    {l:"LONG STAYING ≥100 days",v:n(isLong),c:"var(--r)",cls:"dr",go:"long",s:"Click to view list"},
+    {l:"200+ days",v:n(r=>r.d>=200),c:"var(--y)",cls:"dy",set:()=>S.bucket=S.bucket==="Y"?"ALL":"Y",sel:S.bucket==="Y",s:"Urgent action"},
+    {l:"Average days in depot",v:rows.length?Math.round(rows.reduce((s,r)=>s+r.d,0)/rows.length):0,c:"var(--muted)",s:"days"},
+    ...(CUT.length?[{l:`Gated out (removed)`,v:cutF.length,c:"var(--rel)",go:"gate",s:`to ${dmy(lastGateDay)} · ≥100 days ${fmt(cutF.filter(isLong).length)} units`}]:[]),
   ];
   kpis.innerHTML = kp.map((k,i)=>`<div class="card kpi ${k.set||k.go?"click":""} ${k.sel?"sel":""}" style="--c:${k.c}" data-i="${i}"><div class="l">${k.l}</div><div class="v">${k.cls?`<span class="${k.cls}">${fmt(k.v)}</span>`:fmt(k.v)}</div>${k.s?`<div class="s">${k.s}</div>`:""}</div>`).join("");
   kpis.onclick=e=>{const c=e.target.closest(".kpi"); if(!c) return; const k=kp[+c.dataset.i]; if(k.go){setTab(k.go);window.scrollTo({top:0});} else if(k.set){k.set();render();}};
 
   // Aging chart
   const areas=["BKK","LCH"].filter(a=>S.area==="ALL"||a===S.area);
-  agingChart.innerHTML = (areas.length>1?agingBar("รวมทุก Area",rows):"") + areas.map(a=>agingBar(a,rows.filter(r=>r.ar===a))).join("");
+  agingChart.innerHTML = (areas.length>1?agingBar("All areas",rows):"") + areas.map(a=>agingBar(a,rows.filter(r=>r.ar===a))).join("");
 
   // Area x Group
   const cnt=(f)=>rows.filter(f).length;
-  let h=`<table><tr><th>Area</th>${GROUPS.map(g=>`<th class="num">${g}</th>`).join("")}<th class="num">รวม</th><th class="num">≥100</th><th class="num">200+</th><th class="num">Max</th></tr>`;
+  let h=`<table><tr><th>Area</th>${GROUPS.map(g=>`<th class="num">${g}</th>`).join("")}<th class="num">Total</th><th class="num">≥100</th><th class="num">200+</th><th class="num">Max</th></tr>`;
   areas.forEach(a=>{ const ar=rows.filter(r=>r.ar===a);
     h+=`<tr><td><b>${a}</b></td>${GROUPS.map(g=>`<td class="num">${fmt(ar.filter(r=>r.gp===g).length)}</td>`).join("")}<td class="num"><b>${fmt(ar.length)}</b></td><td class="num dr">${fmt(ar.filter(r=>r.d>=100).length)}</td><td class="num"><span class="dy">${fmt(ar.filter(r=>r.d>=200).length)}</span></td><td class="num">${ar.length?dayCell(Math.max(...ar.map(r=>r.d))):"-"}</td></tr>`;});
-  h+=`<tr class="tot"><td>รวม</td>${GROUPS.map(g=>`<td class="num">${fmt(cnt(r=>r.gp===g))}</td>`).join("")}<td class="num">${fmt(rows.length)}</td><td class="num dr">${fmt(cnt(r=>r.d>=100))}</td><td class="num"><span class="dy">${fmt(cnt(r=>r.d>=200))}</span></td><td class="num">${rows.length?dayCell(Math.max(...rows.map(r=>r.d))):"-"}</td></tr></table>`;
+  h+=`<tr class="tot"><td>Total</td>${GROUPS.map(g=>`<td class="num">${fmt(cnt(r=>r.gp===g))}</td>`).join("")}<td class="num">${fmt(rows.length)}</td><td class="num dr">${fmt(cnt(r=>r.d>=100))}</td><td class="num"><span class="dy">${fmt(cnt(r=>r.d>=200))}</span></td><td class="num">${rows.length?dayCell(Math.max(...rows.map(r=>r.d))):"-"}</td></tr></table>`;
   tArea.innerHTML=h;
 
   // Location aging (เฉพาะลานหลัก ตามลำดับที่กำหนด — BKK01+BKK04 รวมเป็นแถวเดียว)
   const locRows = YARDS.map(y=>{const lr=rows.filter(r=>y.locs.includes(r.loc)); return lr.length?{l:y.label, key:y.locs.join(","), ar:lr[0].ar, n:lr.length, b:BUCKETS.map(b=>lr.filter(r=>b.t(r.d)).length), av:lr.filter(r=>r.gp==="AV").length, dmg:lr.filter(r=>r.gp==="DMG").length, mx:Math.max(...lr.map(r=>r.d))}:null;}).filter(Boolean);
-  tLoc.innerHTML = locRows.length ? `<table><tr><th>Area</th><th>Location</th><th class="num">AV</th><th class="num">DMG</th><th class="num">รวม</th>${BUCKETS.map(b=>`<th class="num">${b.l}</th>`).join("")}<th class="num">Max</th><th>Aging</th></tr>` +
+  tLoc.innerHTML = locRows.length ? `<table><tr><th>Area</th><th>Location</th><th class="num">AV</th><th class="num">DMG</th><th class="num">Total</th>${BUCKETS.map(b=>`<th class="num">${b.l}</th>`).join("")}<th class="num">Max</th><th>Aging</th></tr>` +
     locRows.map(x=>`<tr style="cursor:pointer" data-loc="${x.key}"><td>${x.ar}</td><td><b>${x.l}</b>${S.loc===x.key?" ✓":""}</td><td class="num">${fmt(x.av)}</td><td class="num">${fmt(x.dmg)}</td><td class="num"><b>${fmt(x.n)}</b></td>${x.b.map((v,i)=>`<td class="num ${v?BUCKETS[i].cls:"muted"}">${v?fmt(v):"·"}</td>`).join("")}<td class="num">${dayCell(x.mx)}</td><td><div class="stack" title="${BUCKETS.map((b,i)=>b.l+": "+x.b[i]).join(" | ")}">${x.b.map((v,i)=>v?`<span style="width:${v/x.n*100}%;background:${BUCKETS[i].c}"></span>`:"").join("")}</div></td></tr>`).join("") + `</table>`
-    : `<div class="empty">ไม่มีข้อมูลในตัวกรองปัจจุบัน</div>`;
+    : `<div class="empty">No data for the current filters</div>`;
   tLoc.onclick=e=>{const tr=e.target.closest("tr[data-loc]"); if(!tr) return; S.loc = S.loc===tr.dataset.loc?"ALL":tr.dataset.loc; render();};
 
   // Alert list (>=100)
   const al = rows.filter(isLong).sort((a,b)=>b.d-a.d);
   alertAll = al;
   const relN = al.filter(r=>RELEASED.has(r.cn)).length;
-  alertCount.innerHTML = `${fmt(al.length)} ตู้ (≥200 วัน: <span class="dy">${fmt(al.filter(r=>r.d>=200).length)}</span>)${relN?` <span class="rel">ปล่อยออกแล้ว ${fmt(relN)}</span>`:""}`;
+  alertCount.innerHTML = `${fmt(al.length)} units (≥200 days: <span class="dy">${fmt(al.filter(r=>r.d>=200).length)}</span>)${relN?` <span class="rel">Gated out ${fmt(relN)}</span>`:""}`;
   renderAlert();
 
   renderMain(rows);
@@ -503,7 +503,7 @@ function render(){
 let alertAll=[], alertRows=[], alertOpen=false;
 function setAlertOpen(open){
   alertOpen=open; tAlert.style.display=open?"":"none";
-  alertToggle.textContent=open?"▾ ซ่อนรายการ":"▸ แสดงรายการ";
+  alertToggle.textContent=open?"▾ Hide list":"▸ Show list";
 }
 alertToggle.onclick=()=>setAlertOpen(!alertOpen);
 alertQ.oninput=()=>{ if(alertQ.value.trim()) setAlertOpen(true); renderAlert(); };
@@ -515,33 +515,33 @@ function renderAlert(){
   alertBand = bandButtons(alertBands, searched, alertBand);
   const al = alertBand==="ALL" ? searched : searched.filter(r=>bandOf(r.d)===alertBand);
   alertRows = al;
-  tAlert.innerHTML = al.length ? (v?`<div class="muted" style="font-size:12px;margin-bottom:4px">พบ ${fmt(al.length)} ตู้ จากคำค้น "${esc(v)}"</div>`:"") + `<table><tr><th>#</th><th>Area</th><th>Location</th><th class="num">Days</th><th>Container No</th><th>Size/Type</th><th>Group</th><th>Move Code</th><th>EQ Date</th><th>Built Year</th><th class="rfcol">RF Brand</th></tr>` +
+  tAlert.innerHTML = al.length ? (v?`<div class="muted" style="font-size:12px;margin-bottom:4px">Found ${fmt(al.length)} units for "${esc(v)}"</div>`:"") + `<table><tr><th>#</th><th>Area</th><th>Location</th><th class="num">Days</th><th>Container No</th><th>Size/Type</th><th>Group</th><th>Move Code</th><th>EQ Date</th><th>Built Year</th><th class="rfcol">RF Brand</th></tr>` +
     al.map((r,i)=>bandHead(al,i)+`<tr class="${r.d>=200?"rowy":"rowr"}"><td class="muted">${i+1}</td><td>${r.ar}</td><td>${r.loc}</td><td class="num">${dayCell(r.d)}</td><td class="mono"><b>${esc(r.cn)}</b>${relBadge(r.cn)}</td><td>${r.st}</td><td><span class="gp ${r.gp}">${r.gp}</span></td><td>${r.mc}</td><td>${r.eq}</td><td>${r.by??""}</td><td class="rfcol">${esc(r.rf)}</td></tr>`).join("") + `</table>`
-    : `<div class="empty">${v?`ไม่พบเบอร์ตู้ "${esc(v)}" ในรายการ LONG STAYING`:"ไม่มีตู้ที่อยู่เกิน 100 วันในตัวกรองปัจจุบัน 🎉"}</div>`;
+    : `<div class="empty">${v?`Container "${esc(v)}" not found in LONG STAYING list`:"No containers over 100 days for the current filters 🎉"}</div>`;
 }
 
 // ===== LONG STAYING รายวัน (ต้นวัน / ปล่อยออก / คงเหลือ) =====
 let ldSel = LONGDAILY.length ? LONGDAILY[LONGDAILY.length-1].d : "";
 function renderLongDaily(){
-  if(!LONGDAILY.length){ ldTable.innerHTML=`<div class="empty">ยังไม่มีข้อมูล</div>`; return; }
+  if(!LONGDAILY.length){ ldTable.innerHTML=`<div class="empty">No data yet</div>`; return; }
   const locs = YARDS.flatMap(y=>y.locs).filter(l=>LONGDAILY.some(x=>x.byLoc[l]));
   const extra = uniq(LONGDAILY.flatMap(x=>Object.keys(x.byLoc))).filter(l=>!locs.includes(l));
   const cols = locs.concat(extra);
   const mx = Math.max(...LONGDAILY.map(x=>x.start));
-  ldTitle.textContent = `LONG STAYING รายวัน ${dfull(LONGDAILY[0].d)} – ${dfull(LONGDAILY[LONGDAILY.length-1].d)}`;
-  { const l=LONGDAILY[LONGDAILY.length-1]; ldSum.innerHTML = `ล่าสุด ${dfull(l.d)}: ต้นวัน <b>${fmt(l.start)}</b> · ปล่อยออก <b style="color:var(--rel)">${fmt(l.out)}</b> · คงเหลือ <b class="dr">${fmt(l.end)}</b> · รวมปล่อยออกทั้งช่วง <b style="color:var(--rel)">${fmt(LONGDAILY.reduce((s,x)=>s+x.out,0))}</b> ตู้ (${LONGDAILY.length} วัน)`; }
-  ldTable.innerHTML = `<table><tr><th>วันที่</th><th>STAYING ที่ใช้</th><th class="num">LONG ต้นวัน</th><th class="num">ปล่อยออก</th><th class="num">คงเหลือ</th><th></th>${cols.map(l=>`<th class="num">${l}</th>`).join("")}</tr>` +
+  ldTitle.textContent = `LONG STAYING Daily ${dfull(LONGDAILY[0].d)} – ${dfull(LONGDAILY[LONGDAILY.length-1].d)}`;
+  { const l=LONGDAILY[LONGDAILY.length-1]; ldSum.innerHTML = `Latest ${dfull(l.d)}: Start of day <b>${fmt(l.start)}</b> · Gated out <b style="color:var(--rel)">${fmt(l.out)}</b> · Remaining <b class="dr">${fmt(l.end)}</b> · Total gated out <b style="color:var(--rel)">${fmt(LONGDAILY.reduce((s,x)=>s+x.out,0))}</b> units (${LONGDAILY.length} days)`; }
+  ldTable.innerHTML = `<table><tr><th>Date</th><th>STAYING used</th><th class="num">LONG start</th><th class="num">Gated out</th><th class="num">Remaining</th><th></th>${cols.map(l=>`<th class="num">${l}</th>`).join("")}</tr>` +
     LONGDAILY.slice().reverse().map(x=>`<tr style="cursor:pointer${x.d===ldSel?";font-weight:700":""}" data-d="${x.d}"><td>${dfull(x.d)}${x.d===ldSel?" ✓":""}${x.note?` <span class="dy" style="font-size:11px">${esc(x.note)}</span>`:""}</td><td class="muted">${dfull(x.snap)}</td><td class="num">${fmt(x.start)}</td><td class="num"><b style="color:var(--rel)">${x.out?fmt(x.out):"·"}</b></td><td class="num dr">${fmt(x.end)}</td>
-      <td><div class="stack" style="min-width:110px" title="คงเหลือ ${x.end} · ปล่อยออก ${x.out}"><span style="width:${x.end/mx*100}%;background:var(--r)"></span><span style="width:${x.out/mx*100}%;background:var(--rel)"></span></div></td>
+      <td><div class="stack" style="min-width:110px" title="Remaining ${x.end} · Gated out ${x.out}"><span style="width:${x.end/mx*100}%;background:var(--r)"></span><span style="width:${x.out/mx*100}%;background:var(--rel)"></span></div></td>
       ${cols.map(l=>{const v=x.byLoc[l]; return `<td class="num">${v?`${fmt(v[0]-v[1])}${v[1]?` <span style="color:var(--rel);font-size:11.5px">(−${v[1]})</span>`:""}`:'<span class="muted">·</span>'}</td>`;}).join("")}</tr>`).join("") +
-    `<tr class="tot"><td>รวมปล่อยออก</td><td></td><td></td><td class="num" style="color:var(--rel)">${fmt(LONGDAILY.reduce((s,x)=>s+x.out,0))}</td><td></td><td></td>${cols.map(l=>`<td class="num" style="color:var(--rel)">${fmt(LONGDAILY.reduce((s,x)=>s+((x.byLoc[l]||[0,0])[1]),0))}</td>`).join("")}</tr></table>`;
+    `<tr class="tot"><td>Total gated out</td><td></td><td></td><td class="num" style="color:var(--rel)">${fmt(LONGDAILY.reduce((s,x)=>s+x.out,0))}</td><td></td><td></td>${cols.map(l=>`<td class="num" style="color:var(--rel)">${fmt(LONGDAILY.reduce((s,x)=>s+((x.byLoc[l]||[0,0])[1]),0))}</td>`).join("")}</tr></table>`;
   const x = LONGDAILY.find(z=>z.d===ldSel);
-  ldGone.innerHTML = x && x.gone.length ? `<h2 style="font-size:14px;color:var(--rel)">ตู้ค้างนานที่ปล่อยออก ${dfull(x.d)} — ${x.gone.length} ตู้</h2><div class="scroll" style="max-height:320px"><table><tr><th>#</th><th>Location</th><th>Container No</th><th>Size/Type</th><th class="num">วันค้าง</th><th>EQ Date</th><th>Move Code</th><th>GATE OUT</th><th>ลาน</th></tr>` +
+  ldGone.innerHTML = x && x.gone.length ? `<h2 style="font-size:14px;color:var(--rel)">Long staying containers gated out ${dfull(x.d)} — ${x.gone.length} units</h2><div class="scroll" style="max-height:320px"><table><tr><th>#</th><th>Location</th><th>Container No</th><th>Size/Type</th><th class="num">Days</th><th>EQ Date</th><th>Move Code</th><th>GATE OUT</th><th>Depot</th></tr>` +
     x.gone.map((r,i)=>`<tr><td class="muted">${i+1}</td><td>${r.loc}</td><td class="mono"><b>${esc(r.cn)}</b></td><td>${r.st}</td><td class="num">${dayCell(r.d)}</td><td>${r.eq}</td><td>${r.mc}</td><td><b style="color:var(--rel)">${dmy(x.d)} ${r.gt}</b></td><td>${esc(r.yard)}</td></tr>`).join("") + `</table></div>`
-    : (x ? `<div class="muted">ไม่มีตู้ค้างนานที่ปล่อยออกวันที่ ${dfull(x.d)}</div>` : "");
+    : (x ? `<div class="muted">No long staying containers gated out on ${dfull(x.d)}</div>` : "");
 }
 let ldOpen=false;
-ldToggle.onclick=()=>{ ldOpen=!ldOpen; ldBody.style.display=ldOpen?"":"none"; ldToggle.textContent=ldOpen?"▾ ซ่อนรายการ":"▸ แสดงรายการ"; };
+ldToggle.onclick=()=>{ ldOpen=!ldOpen; ldBody.style.display=ldOpen?"":"none"; ldToggle.textContent=ldOpen?"▾ Hide list":"▸ Show list"; };
 ldTable.onclick=e=>{const tr=e.target.closest("tr[data-d]"); if(!tr) return; ldSel=tr.dataset.d; renderLongDaily();};
 
 // ===== แบ่งกลุ่มละ 50 วัน (0–49, 50–99, 100–149, …) =====
@@ -552,15 +552,15 @@ function bandHead(list, i, pageStart=0, cols=11){
   if(cont && i!==pageStart) return "";
   const n=list.filter(r=>bandOf(r.d)===b).length;
   const lo=b*50, hi=lo+49, cls=bucketOf(lo).cls;
-  return `<tr class="bandrow"><td colspan="${cols}"><span class="${cls}">${lo}–${hi} วัน</span> <span class="muted">· ${fmt(n)} ตู้${cont?" (ต่อ)":""}</span></td></tr>`;
+  return `<tr class="bandrow"><td colspan="${cols}"><span class="${cls}">${lo}–${hi} days</span> <span class="muted">· ${fmt(n)} units${cont?" (cont.)":""}</span></td></tr>`;
 }
 // ปุ่มเลือกกลุ่ม 50 วัน (แสดงเฉพาะกลุ่มที่มีตู้) — คืนค่ากลุ่มที่เลือก (ALL ถ้ากลุ่มเดิมไม่มีตู้แล้ว)
 function bandButtons(el, list, sel){
   const cnt={}; list.forEach(r=>{const b=bandOf(r.d); cnt[b]=(cnt[b]||0)+1;});
   const bands=Object.keys(cnt).map(Number).sort((a,b)=>b-a);
   if(sel!=="ALL" && !cnt[sel]) sel="ALL";
-  el.innerHTML = `<button class="btn ${sel==="ALL"?"on":""}" data-v="ALL">ทั้งหมด<span class="n">${fmt(list.length)}</span></button>` +
-    bands.map(b=>`<button class="btn ${sel===b?"on":""}" data-v="${b}"><span class="${bucketOf(b*50).cls}">${b*50}–${b*50+49} วัน</span><span class="n">${fmt(cnt[b])}</span></button>`).join("");
+  el.innerHTML = `<button class="btn ${sel==="ALL"?"on":""}" data-v="ALL">All<span class="n">${fmt(list.length)}</span></button>` +
+    bands.map(b=>`<button class="btn ${sel===b?"on":""}" data-v="${b}"><span class="${bucketOf(b*50).cls}">${b*50}–${b*50+49} days</span><span class="n">${fmt(cnt[b])}</span></button>`).join("");
   return sel;
 }
 let mainBand="ALL";
@@ -578,8 +578,8 @@ function renderMain(rows){
   const pr=lastRows.slice(S.page*PAGE,(S.page+1)*PAGE);
   tMain.innerHTML = `<tr><th>#</th>${COLS.map(([c,l,cls])=>`<th class="sort ${cls||""}" data-k="${c}">${l}${c===k?(dir<0?" ▼":" ▲"):""}</th>`).join("")}</tr>` +
     pr.map((r,i)=>(k==="d"?bandHead(lastRows,S.page*PAGE+i,S.page*PAGE):"")+`<tr class="${r.d>=200?"rowy":""}"><td class="muted">${S.page*PAGE+i+1}</td><td>${r.ar}</td><td>${r.loc}</td><td class="num">${dayCell(r.d)}</td><td class="mono"><b>${esc(r.cn)}</b>${relBadge(r.cn)}</td><td>${r.st}</td><td><span class="gp ${r.gp}">${r.gp}</span></td><td>${r.mc}</td><td>${r.eq}</td><td class="num">${r.by??""}</td><td class="rfcol">${esc(r.rf)}</td></tr>`).join("");
-  pager.innerHTML = `<span class="muted">แสดง ${fmt(lastRows.length?S.page*PAGE+1:0)}–${fmt(Math.min((S.page+1)*PAGE,lastRows.length))} จาก ${fmt(lastRows.length)} ตู้</span>
-    <button class="btn" data-p="prev" ${S.page===0?"disabled":""}>‹ ก่อนหน้า</button><span>${S.page+1} / ${pages}</span><button class="btn" data-p="next" ${S.page>=pages-1?"disabled":""}>ถัดไป ›</button>`;
+  pager.innerHTML = `<span class="muted">Showing ${fmt(lastRows.length?S.page*PAGE+1:0)}–${fmt(Math.min((S.page+1)*PAGE,lastRows.length))} of ${fmt(lastRows.length)} units</span>
+    <button class="btn" data-p="prev" ${S.page===0?"disabled":""}>‹ Prev</button><span>${S.page+1} / ${pages}</span><button class="btn" data-p="next" ${S.page>=pages-1?"disabled":""}>Next ›</button>`;
 }
 tMain.onclick=e=>{const th=e.target.closest("th[data-k]"); if(!th) return; const k=th.dataset.k; if(S.sortKey===k) S.sortDir*=-1; else {S.sortKey=k;S.sortDir=k==="d"||k==="by"?-1:1;} renderMain(DATA.filter(r=>pass(r)));};
 pager.onclick=e=>{const b=e.target.closest("button[data-p]"); if(!b) return; S.page+=b.dataset.p==="next"?1:-1; renderMain(DATA.filter(r=>pass(r))); mainWrap.scrollIntoView({block:"start"});};
@@ -603,7 +603,7 @@ gFrom.innerHTML = dateOpts; gTo.innerHTML = dateOpts;
 function setRange(f,t){ if(f>t) [f,t]=[t,f]; G.from=f; G.to=t; renderGate(); }
 gFrom.onchange=()=>setRange(gFrom.value, G.to);
 gTo.onchange=()=>setRange(G.from, gTo.value);
-const QUICK = [["last","วันล่าสุด",()=>[GDATES[0],GDATES[0]]],["7","7 วันล่าสุด",()=>[GDATES[Math.min(6,GDATES.length-1)],GDATES[0]]],["ALL","ทุกวัน",()=>[GDATES[GDATES.length-1],GDATES[0]]]];
+const QUICK = [["last","Latest day",()=>[GDATES[0],GDATES[0]]],["7","Last 7 days",()=>[GDATES[Math.min(6,GDATES.length-1)],GDATES[0]]],["ALL","All days",()=>[GDATES[GDATES.length-1],GDATES[0]]]];
 btnGroup(gQuick, QUICK.map(([k,l])=>[k,l]), v=>{ const [f,t]=QUICK.find(q=>q[0]===v)[2](); setRange(f,t); });
 // สัปดาห์ (ISO จันทร์–อาทิตย์)
 function isoWeek(d){ const t=new Date(d+"T00:00:00Z"); const wd=(t.getUTCDay()+6)%7; const th=new Date(t); th.setUTCDate(t.getUTCDate()-wd+3);
@@ -614,20 +614,20 @@ function isoWeek(d){ const t=new Date(d+"T00:00:00Z"); const wd=(t.getUTCDay()+6
 const GWEEKS = []; GDATES.forEach(d=>{ const wk=isoWeek(d); let x=GWEEKS.find(z=>z.k===wk.k); if(!x){x={...wk,days:[]};GWEEKS.push(x);} x.days.push(d); });
 GWEEKS.forEach(x=>{ x.from=x.days[x.days.length-1]; x.to=x.days[0]; });
 const wkOpts = GWEEKS.slice().reverse().map(x=>`<option value="${x.k}">W${x.w} (${x.rng})</option>`).join("");
-gWFrom.innerHTML = `<option value="">— เลือก —</option>` + wkOpts; gWTo.innerHTML = `<option value="">— เลือก —</option>` + wkOpts;
+gWFrom.innerHTML = `<option value="">— Select —</option>` + wkOpts; gWTo.innerHTML = `<option value="">— Select —</option>` + wkOpts;
 function setWeeks(a,b){ const wa=GWEEKS.find(z=>z.k===a)||GWEEKS.find(z=>z.k===b), wb=GWEEKS.find(z=>z.k===b)||wa;
   if(!wa) return; const lo=wa.k<=wb.k?wa:wb, hi=wa.k<=wb.k?wb:wa; setRange(lo.from,hi.to); }
 gWFrom.onchange=()=>setWeeks(gWFrom.value, gWTo.value||gWFrom.value);
 gWTo.onchange=()=>setWeeks(gWFrom.value||gWTo.value, gWTo.value);
 let gViewMode="day";
-btnGroup(gView, [["day","รายวัน"],["week","รายสัปดาห์"]], v=>{ gViewMode=v; renderGate(); });
+btnGroup(gView, [["day","Daily"],["week","Weekly"]], v=>{ gViewMode=v; renderGate(); });
 const GYARDS = uniq(GATE.map(g=>g.loc)).map(l=>[l, `${GATE.find(g=>g.loc===l).yard} (${l})`]);
-btnGroup(gMove, [["ALL","ทั้งหมด"],...GYARDS], v=>{G.move=v;renderGate();});
-gRange.textContent = GDATES.length ? `· มีข้อมูล ${dfull(GDATES[GDATES.length-1])} – ${dfull(GDATES[0])} (${GDATES.length} วัน)` : "";
-btnGroup(gArea, [["ALL","ทั้งหมด"],["BKK","BKK"],["LCH","LCH"]], v=>{G.area=v;renderGate();});
-btnGroup(gBucketBtns, [["ALL","ทั้งหมด"],...BUCKETS.map(b=>[b.k,`<span class="${b.cls}">${b.l} วัน</span>`]),["LONG","≥100 วัน"]], v=>{G.bucket=v;renderGateTable();});
+btnGroup(gMove, [["ALL","All"],...GYARDS], v=>{G.move=v;renderGate();});
+gRange.textContent = GDATES.length ? `· data ${dfull(GDATES[GDATES.length-1])} – ${dfull(GDATES[0])} (${GDATES.length} days)` : "";
+btnGroup(gArea, [["ALL","All"],["BKK","BKK"],["LCH","LCH"]], v=>{G.area=v;renderGate();});
+btnGroup(gBucketBtns, [["ALL","All"],...BUCKETS.map(b=>[b.k,`<span class="${b.cls}">${b.l} days</span>`]),["LONG","≥100 days"]], v=>{G.bucket=v;renderGateTable();});
 let gOpen=false;
-function setGateOpen(open){ gOpen=open; gTable.style.display=open?"":"none"; gToggle.textContent=open?"▾ ซ่อนรายการ":"▸ แสดงรายการ"; }
+function setGateOpen(open){ gOpen=open; gTable.style.display=open?"":"none"; gToggle.textContent=open?"▾ Hide list":"▸ Show list"; }
 gToggle.onclick=()=>setGateOpen(!gOpen);
 gQ.oninput=()=>{G.q=gQ.value.trim().toUpperCase(); if(G.q) setGateOpen(true); renderGateTable();};
 const gBucketOk = g => G.bucket==="ALL" || (g.d!=null && (G.bucket==="LONG" ? g.d>=100 : bucketOf(g.d).k===G.bucket));
@@ -637,11 +637,11 @@ function sumCells(list){
   const k=list.filter(g=>g.d!=null);
   return `<td class="num"><b>${fmt(list.length)}</b></td>${BUCKETS.map(b=>{const v=k.filter(g=>b.t(g.d)).length;return `<td class="num ${v?b.cls:"muted"}">${v?fmt(v):"·"}</td>`;}).join("")}<td class="num">${k.length?(k.reduce((s,g)=>s+g.d,0)/k.length).toFixed(1):"-"}</td><td class="num">${k.length?dayCell(Math.max(...k.map(g=>g.d))):"-"}</td>`;
 }
-const sumHead = first => `<tr><th>${first}</th><th class="num">ปล่อยออก</th>${BUCKETS.map(b=>`<th class="num"><span class="${b.cls}">${b.l}</span></th>`).join("")}<th class="num">เฉลี่ย (วัน)</th><th class="num">Max</th></tr>`;
+const sumHead = first => `<tr><th>${first}</th><th class="num">Gated out</th>${BUCKETS.map(b=>`<th class="num"><span class="${b.cls}">${b.l}</span></th>`).join("")}<th class="num">Avg days</th><th class="num">Max</th></tr>`;
 
 function renderGate(){
   tabGate.textContent = fmt(GATE.filter(g=>g.gd===GDATES[0]).length);
-  if(!GATE.length){ gKpis.innerHTML=`<div class="card empty" style="grid-column:1/-1">ยังไม่มีข้อมูล GATE OUT</div>`; gBuckets.innerHTML=gDaily.innerHTML=gYard.innerHTML=gTable.innerHTML=""; return; }
+  if(!GATE.length){ gKpis.innerHTML=`<div class="card empty" style="grid-column:1/-1">No GATE OUT data yet</div>`; gBuckets.innerHTML=gDaily.innerHTML=gYard.innerHTML=gTable.innerHTML=""; return; }
   gFrom.value=G.from; gTo.value=G.to;
   const rows = GATE.filter(g=>gPass(g));
   setButtons(gQuick, v=>{const [f,t]=QUICK.find(q=>q[0]===v)[2](); return f===G.from&&t===G.to;});
@@ -649,7 +649,7 @@ function renderGate(){
   // สัปดาห์ที่ตรงกับช่วงวันที่ที่เลือก (ถ้าช่วงเริ่ม/จบตรงขอบสัปดาห์พอดี)
   const wf=GWEEKS.find(x=>x.from===G.from), wt=GWEEKS.find(x=>x.to===G.to);
   gWFrom.value = wf&&wt ? wf.k : ""; gWTo.value = wf&&wt ? wt.k : "";
-  [...gWFrom.options,...gWTo.options].forEach(o=>{ const x=GWEEKS.find(z=>z.k===o.value); if(x) o.textContent=`W${x.w} (${x.rng}) · ${fmt(wkRows.filter(g=>x.days.includes(g.gd)).length)} ตู้`; });
+  [...gWFrom.options,...gWTo.options].forEach(o=>{ const x=GWEEKS.find(z=>z.k===o.value); if(x) o.textContent=`W${x.w} (${x.rng}) · ${fmt(wkRows.filter(g=>x.days.includes(g.gd)).length)} units`; });
   setButtons(gView, v=>v===gViewMode);
   const mvRows=GATE.filter(g=>gPass(g,"move")); setButtons(gMove, v=>v===G.move, Object.assign(Object.fromEntries(GYARDS.map(([l])=>[l,0])),countBy(mvRows,g=>g.loc),{ALL:mvRows.length}));
   const arRows=GATE.filter(g=>gPass(g,"area")); setButtons(gArea, v=>v===G.area, Object.assign({BKK:0,LCH:0},countBy(arRows,g=>g.ar),{ALL:arRows.length}));
@@ -659,39 +659,39 @@ function renderGate(){
   const top = known[0] ? known.reduce((a,b)=>b.d>a.d?b:a) : null;
   const long = known.filter(g=>g.d>=100).length;
   const kp=[
-    {l:`ปล่อยออก ${gRangeTxt()}`,v:fmt(rows.length),c:"var(--rel)",s:G.move==="ALL"?GYARDS.map(([l])=>`${l} ${fmt(rows.filter(g=>g.loc===l).length)}`).join(" · "):GYARDS.find(y=>y[0]===G.move)[1]},
-    {l:"วันค้างเฉลี่ยก่อนปล่อย",v:avg,c:"var(--accent)",s:"วัน"},
-    {l:"ค้างนานที่สุด",v:top?top.d:"-",c:top?bucketOf(top.d).c:"var(--line)",s:top?`${top.cn} · ${top.st} · ${top.yard}`:"",cls:top?bucketOf(top.d).cls:""},
-    {l:"ค้าง ≥100 วัน ที่ปล่อยออก",v:fmt(long),c:"var(--r)",cls:"dr",s:`${pct(long,known.length)}% ของตู้ที่ปล่อย`},
-    {l:"ค้าง 31–99 วัน",v:fmt(known.filter(g=>g.d>=31&&g.d<=99).length),c:"var(--o)",cls:"do",s:`${pct(known.filter(g=>g.d>=31&&g.d<=99).length,known.length)}%`},
-    {l:"ก่อนปล่อยเป็น DMG",v:fmt(rows.filter(g=>g.pgp==="DMG").length),c:"var(--dmg)",s:`AV ${fmt(rows.filter(g=>g.pgp==="AV").length)} ตู้`},
+    {l:`Gated out ${gRangeTxt()}`,v:fmt(rows.length),c:"var(--rel)",s:G.move==="ALL"?GYARDS.map(([l])=>`${l} ${fmt(rows.filter(g=>g.loc===l).length)}`).join(" · "):GYARDS.find(y=>y[0]===G.move)[1]},
+    {l:"Avg days before gate out",v:avg,c:"var(--accent)",s:"days"},
+    {l:"Longest stay",v:top?top.d:"-",c:top?bucketOf(top.d).c:"var(--line)",s:top?`${top.cn} · ${top.st} · ${top.yard}`:"",cls:top?bucketOf(top.d).cls:""},
+    {l:"Gated out after ≥100 days",v:fmt(long),c:"var(--r)",cls:"dr",s:`${pct(long,known.length)}% of gated out`},
+    {l:"31–99 days",v:fmt(known.filter(g=>g.d>=31&&g.d<=99).length),c:"var(--o)",cls:"do",s:`${pct(known.filter(g=>g.d>=31&&g.d<=99).length,known.length)}%`},
+    {l:"DMG before gate out",v:fmt(rows.filter(g=>g.pgp==="DMG").length),c:"var(--dmg)",s:`AV ${fmt(rows.filter(g=>g.pgp==="AV").length)} units`},
   ];
   gKpis.innerHTML = kp.map(k=>`<div class="card kpi" style="--c:${k.c}"><div class="l">${k.l}</div><div class="v">${k.cls?`<span class="${k.cls}">${k.v}</span>`:k.v}</div>${k.s?`<div class="s">${esc(k.s)}</div>`:""}</div>`).join("");
 
   // สรุปแต่ละลาน (ตามช่วงวันที่ / Area) — คลิกแถวเพื่อเลือกลาน
   const yRows = GATE.filter(g=>gPass(g,"move"));
-  gYardTitle.textContent = `สรุปแต่ละลาน · ${gRangeTxt()}`;
-  gYard.innerHTML = `<table>${sumHead("ลาน")}` +
+  gYardTitle.textContent = `Summary by Depot · ${gRangeTxt()}`;
+  gYard.innerHTML = `<table>${sumHead("Depot")}` +
     GYARDS.map(([l,label])=>{const yr=yRows.filter(g=>g.loc===l); return yr.length?`<tr style="cursor:pointer${G.move===l?";font-weight:700":""}" data-y="${l}"><td>${esc(label)}${G.move===l?" ✓":""}</td>${sumCells(yr)}</tr>`:"";}).join("") +
-    `<tr class="tot"><td>รวม</td>${sumCells(yRows)}</tr></table>`;
+    `<tr class="tot"><td>Total</td>${sumCells(yRows)}</tr></table>`;
   gYard.onclick=e=>{const tr=e.target.closest("tr[data-y]"); if(!tr) return; G.move=G.move===tr.dataset.y?"ALL":tr.dataset.y; renderGate();};
 
   // แท่งแนวนอน: กลุ่มวันค้าง
   const bc = BUCKETS.map(b=>known.filter(g=>b.t(g.d)).length), mx=Math.max(1,...bc);
-  gBuckets.innerHTML = BUCKETS.map((b,i)=>`<div class="hb" title="${b.l} วัน: ${fmt(bc[i])} ตู้ (${pct(bc[i],known.length)}%)"><span class="${b.cls}">${b.l} วัน</span><div class="track"><div class="fill" style="width:${bc[i]/mx*100}%;background:${b.c}"></div></div><span class="val"><b>${fmt(bc[i])}</b> ตู้ · ${pct(bc[i],known.length)}%</span></div>`).join("") +
-    (rows.length-known.length?`<div class="note">ไม่พบวันเข้าลาน ${fmt(rows.length-known.length)} ตู้ (ไม่มีในไฟล์ STAYING รายวัน)</div>`:"");
+  gBuckets.innerHTML = BUCKETS.map((b,i)=>`<div class="hb" title="${b.l} days: ${fmt(bc[i])} units (${pct(bc[i],known.length)}%)"><span class="${b.cls}">${b.l} days</span><div class="track"><div class="fill" style="width:${bc[i]/mx*100}%;background:${b.c}"></div></div><span class="val"><b>${fmt(bc[i])}</b> units · ${pct(bc[i],known.length)}%</span></div>`).join("") +
+    (rows.length-known.length?`<div class="note">Gate-in date not found for ${fmt(rows.length-known.length)} units (not in the daily STAYING files)</div>`:"");
 
   // สรุปรายวัน (ทุกวันตามตัวกรองลาน/Area) — คลิกแถวเพื่อเลือกวันนั้น
   const dayRows = GATE.filter(g=>gPass(g,"date"));
   if(gViewMode==="week"){
-    gDaily.innerHTML = `<table>${sumHead("สัปดาห์")}` +
-      GWEEKS.map(x=>{const sel=x.from===G.from&&x.to===G.to; return `<tr style="cursor:pointer${sel?";font-weight:700":""}" data-w="${x.k}"><td>W${x.w} <span class="muted">${x.rng} · ${x.days.length} วัน</span>${sel?" ✓":""}</td>${sumCells(dayRows.filter(g=>x.days.includes(g.gd)))}</tr>`;}).join("") +
-      `<tr class="tot"><td>รวม</td>${sumCells(dayRows)}</tr></table>`;
-    gDailyTitle.textContent = `สรุปรายสัปดาห์ (${GWEEKS.length} สัปดาห์)`;
+    gDaily.innerHTML = `<table>${sumHead("Week")}` +
+      GWEEKS.map(x=>{const sel=x.from===G.from&&x.to===G.to; return `<tr style="cursor:pointer${sel?";font-weight:700":""}" data-w="${x.k}"><td>W${x.w} <span class="muted">${x.rng} · ${x.days.length} days</span>${sel?" ✓":""}</td>${sumCells(dayRows.filter(g=>x.days.includes(g.gd)))}</tr>`;}).join("") +
+      `<tr class="tot"><td>Total</td>${sumCells(dayRows)}</tr></table>`;
+    gDailyTitle.textContent = `Weekly Summary (${GWEEKS.length} weeks)`;
   } else {
-    gDaily.innerHTML = `<table>${sumHead("วันที่ปล่อย")}` +
+    gDaily.innerHTML = `<table>${sumHead("Gate out date")}` +
       GDATES.map(d=>{const sel=d>=G.from&&d<=G.to; return `<tr style="cursor:pointer${sel?";font-weight:700":""}" data-d="${d}"><td>${dfull(d)} <span class="muted">W${isoWeek(d).w}</span>${HOLI[d]?` <span class="dy" style="font-size:11px">${esc(HOLI[d])}</span>`:""}${sel?" ✓":""}</td>${sumCells(dayRows.filter(g=>g.gd===d))}</tr>`;}).join("") + `</table>`;
-    gDailyTitle.textContent = `สรุปรายวัน (${GDATES.length} วัน)`;
+    gDailyTitle.textContent = `Daily Summary (${GDATES.length} days)`;
   }
   gDaily.onclick=e=>{const tr=e.target.closest("tr[data-d],tr[data-w]"); if(!tr) return;
     if(tr.dataset.w){ const x=GWEEKS.find(z=>z.k===tr.dataset.w); setRange(x.from,x.to); } else setRange(tr.dataset.d,tr.dataset.d); };
@@ -700,16 +700,16 @@ function renderGate(){
 }
 let gTableRows=[];
 function renderGateTable(){
-  if(window.gCount) gCount.textContent = `${fmt(gRows.length)} ตู้ (≥100 วัน: ${fmt(gRows.filter(g=>g.d>=100).length)})`;
+  if(window.gCount) gCount.textContent = `${fmt(gRows.length)} units (≥100 days: ${fmt(gRows.filter(g=>g.d>=100).length)})`;
   const cb=countBy(gRows.filter(g=>g.d!=null),g=>bucketOf(g.d).k); cb.ALL=gRows.length; cb.LONG=gRows.filter(g=>g.d>=100).length;
   setButtons(gBucketBtns, v=>v===G.bucket, Object.assign({G:0,O:0,R:0,Y:0},cb));
   const list = gRows.filter(g=>gBucketOk(g) && (!G.q || g.cn.toUpperCase().includes(G.q)))
     .slice().sort((a,b)=>(b.d??-1)-(a.d??-1) || (b.gd+b.gt).localeCompare(a.gd+a.gt));
   gTableRows = list;
   const showDate = G.from!==G.to;
-  gTable.innerHTML = list.length ? `<table><tr><th>#</th>${showDate?"<th>Gate Date</th>":""}<th>Time</th><th>ลาน</th><th>Location</th><th>Area</th><th class="num">วันค้าง</th><th>Container No</th><th>Size/Type</th><th>EQ Date (เข้าลาน)</th><th>Move ก่อนปล่อย</th><th>Type</th></tr>` +
-    list.map((g,i)=>(g.d!=null?bandHead(list,i,0,showDate?12:11):"")+`<tr class="${g.d>=200?"rowy":g.d>=100?"rowr":""}"><td class="muted">${i+1}</td>${showDate?`<td>${g.gd}</td>`:""}<td>${g.gt}</td><td><span class="mv">${esc(g.yard)}</span></td><td>${g.loc}</td><td>${g.ar}</td><td class="num">${dayCell(g.d)}</td><td class="mono"><b>${esc(g.cn)}</b></td><td>${g.st}</td><td>${g.eq||'<span class="muted">ไม่พบ</span>'}</td><td>${g.pmc?`${g.pmc} <span class="gp ${g.pgp}">${g.pgp}</span>`:""}</td><td>${esc(g.typ)}</td></tr>`).join("") + `</table>`
-    : `<div class="empty">ไม่มีตู้ปล่อยออกในตัวกรองนี้</div>`;
+  gTable.innerHTML = list.length ? `<table><tr><th>#</th>${showDate?"<th>Gate Date</th>":""}<th>Time</th><th>Depot</th><th>Location</th><th>Area</th><th class="num">Days</th><th>Container No</th><th>Size/Type</th><th>EQ Date (gate in)</th><th>Move before gate out</th><th>Type</th></tr>` +
+    list.map((g,i)=>(g.d!=null?bandHead(list,i,0,showDate?12:11):"")+`<tr class="${g.d>=200?"rowy":g.d>=100?"rowr":""}"><td class="muted">${i+1}</td>${showDate?`<td>${g.gd}</td>`:""}<td>${g.gt}</td><td><span class="mv">${esc(g.yard)}</span></td><td>${g.loc}</td><td>${g.ar}</td><td class="num">${dayCell(g.d)}</td><td class="mono"><b>${esc(g.cn)}</b></td><td>${g.st}</td><td>${g.eq||'<span class="muted">not found</span>'}</td><td>${g.pmc?`${g.pmc} <span class="gp ${g.pgp}">${g.pgp}</span>`:""}</td><td>${esc(g.typ)}</td></tr>`).join("") + `</table>`
+    : `<div class="empty">No gated-out containers for this filter</div>`;
 }
 
 // ===== Export Excel =====
@@ -720,8 +720,8 @@ function loadExcelJS(){
 }
 const XL_FILL = {G:"FFDCFCE7",O:"FFFFEDD5",R:"FFFEE2E2",Y:"FFFFF59D"}, XL_FONT = {G:"FF15803D",O:"FFC2410C",R:"FFB91C1C",Y:"FFB91C1C"};
 async function exportXlsx(btn, sheetName, columns, rows, fileName){
-  if(!rows.length){ alert("ไม่มีข้อมูลในตัวกรองปัจจุบัน"); return; }
-  const label=btn.textContent; btn.textContent="กำลังสร้างไฟล์…"; btn.disabled=true;
+  if(!rows.length){ alert("No data for the current filters"); return; }
+  const label=btn.textContent; btn.textContent="Creating file…"; btn.disabled=true;
   try{
     await loadExcelJS();
     const wb=new ExcelJS.Workbook(); const ws=wb.addWorksheet(sheetName,{views:[{state:"frozen",ySplit:1}]});
@@ -740,22 +740,22 @@ async function exportXlsx(btn, sheetName, columns, rows, fileName){
     const buf=await wb.xlsx.writeBuffer();
     const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
     a.download=fileName; a.click(); URL.revokeObjectURL(a.href);
-  }catch(e){ alert("สร้างไฟล์ Excel ไม่สำเร็จ (ต้องต่ออินเทอร์เน็ตเพื่อโหลดตัวสร้างไฟล์)"); }
+  }catch(e){ alert("Could not create the Excel file (internet is needed to load the Excel library)"); }
   finally{ btn.textContent=label; btn.disabled=false; }
 }
 xlsxBtn.onclick=()=>exportXlsx(xlsxBtn,"LONG STAYING",[
     {header:"#",key:"i",width:6},{header:"Area",key:"ar",width:8},{header:"Location",key:"loc",width:11},
     {header:"Days",key:"d",width:8},{header:"Aging",key:"ag",width:10},{header:"Container No",key:"cn",width:16},
     {header:"Size/Type",key:"st",width:10},{header:"Group",key:"gp",width:8},{header:"Move Code",key:"mc",width:11},
-    {header:"EQ Date",key:"eq",width:12},{header:"Built Year",key:"by",width:11},{header:"RF Brand",key:"rf",width:13},{header:"ปล่อยออก",key:"rel",width:18}],
-  alertRows.map((r,i)=>{const g=RELEASED.get(r.cn); return {i:i+1,ar:r.ar,loc:r.loc,d:r.d,ag:bucketOf(r.d).l+" วัน",cn:r.cn,st:r.st,gp:r.gp,mc:r.mc,eq:r.eq,by:r.by??"",rf:r.rf,rel:g?`${g.yard} ${g.gd} ${g.gt}`:""};}),
+    {header:"EQ Date",key:"eq",width:12},{header:"Built Year",key:"by",width:11},{header:"RF Brand",key:"rf",width:13},{header:"Gated out",key:"rel",width:18}],
+  alertRows.map((r,i)=>{const g=RELEASED.get(r.cn); return {i:i+1,ar:r.ar,loc:r.loc,d:r.d,ag:bucketOf(r.d).l+" days",cn:r.cn,st:r.st,gp:r.gp,mc:r.mc,eq:r.eq,by:r.by??"",rf:r.rf,rel:g?`${g.yard} ${g.gd} ${g.gt}`:""};}),
   `LONG_STAYING_${META.lastEq}.xlsx`);
 gXlsx.onclick=()=>exportXlsx(gXlsx,"GATE OUT",[
-    {header:"#",key:"i",width:6},{header:"Gate Date",key:"gd",width:12},{header:"Time",key:"gt",width:7},{header:"ลาน",key:"yard",width:11},
-    {header:"Area",key:"ar",width:7},{header:"Location",key:"loc",width:10},{header:"วันค้าง",key:"d",width:9},{header:"Aging",key:"ag",width:10},
-    {header:"Container No",key:"cn",width:16},{header:"Size/Type",key:"st",width:10},{header:"EQ Date (เข้าลาน)",key:"eq",width:16},
-    {header:"Move ก่อนปล่อย",key:"pmc",width:14},{header:"Group",key:"pgp",width:8},{header:"Type",key:"typ",width:10}],
-  gTableRows.map((g,i)=>({i:i+1,gd:g.gd,gt:g.gt,yard:g.yard,ar:g.ar,loc:g.loc,d:g.d??"",ag:g.d!=null?bucketOf(g.d).l+" วัน":"",cn:g.cn,st:g.st,eq:g.eq,pmc:g.pmc,pgp:g.pgp,typ:g.typ})),
+    {header:"#",key:"i",width:6},{header:"Gate Date",key:"gd",width:12},{header:"Time",key:"gt",width:7},{header:"Depot",key:"yard",width:11},
+    {header:"Area",key:"ar",width:7},{header:"Location",key:"loc",width:10},{header:"Days",key:"d",width:9},{header:"Aging",key:"ag",width:10},
+    {header:"Container No",key:"cn",width:16},{header:"Size/Type",key:"st",width:10},{header:"EQ Date (gate in)",key:"eq",width:16},
+    {header:"Move before gate out",key:"pmc",width:18},{header:"Group",key:"pgp",width:8},{header:"Type",key:"typ",width:10}],
+  gTableRows.map((g,i)=>({i:i+1,gd:g.gd,gt:g.gt,yard:g.yard,ar:g.ar,loc:g.loc,d:g.d??"",ag:g.d!=null?bucketOf(g.d).l+" days":"",cn:g.cn,st:g.st,eq:g.eq,pmc:g.pmc,pgp:g.pgp,typ:g.typ})),
   `GATE_OUT_${G.from===G.to?G.from:G.from+"_"+G.to}.xlsx`);
 
 csvBtn.onclick=()=>{

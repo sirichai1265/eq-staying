@@ -260,7 +260,7 @@ def gateout_rows(path):
 GATE_DB = os.path.join(os.path.dirname(HERE), "GATE MOVE", "GATE MOVE DATABASE.xlsx")
 STOCK_DAILY = os.path.join(os.path.dirname(HERE), "STOCK DAILY")
 GATE_FROM, GATE_TO = "2026-10-01", "9999-12-31"     # ช่วงวันที่เก็บข้อมูลตู้ปล่อยออก (ถึงวันล่าสุดในฐานข้อมูล)
-YARD_HOLIDAYS = {"2026-10-23": "ลานหยุด (วันปิยมหาราช)"}   # วันที่ลานหยุด — ไม่มี GATE OUT
+YARD_HOLIDAYS = {"2026-10-23": "Yard closed (Chulalongkorn Day)"}   # วันที่ลานหยุด — ไม่มี GATE OUT
 SNAP_CACHE = os.path.join(HERE, ".staying_cache.json")
 
 
